@@ -23,6 +23,23 @@ Route::middleware('auth')->group(function () {
 
     // ✅ data kependudukan (via controller)
     Route::get('/data/populasi-per-wilayah', [PopulationDataController::class, 'populasiPerWilayah'])->name('data.populasi');
+
+    // ➕ form tambah data populasi per wilayah
+    Route::get('/data/populasi-per-wilayah/create', [PopulationDataController::class, 'createPopulasiPerWilayah'])
+        ->name('data.populasi.create');
+
+    // 💾 simpan data populasi per wilayah
+    Route::post('/data/populasi-per-wilayah', [PopulationDataController::class, 'storePopulasiPerWilayah'])
+        ->name('data.populasi.store');
+
+        // ✏️ edit data populasi per wilayah
+Route::get('/data/populasi-per-wilayah/{id}/edit', [PopulationDataController::class, 'editPopulasiPerWilayah'])
+    ->name('data.populasi.edit');
+
+// 💾 update data populasi per wilayah
+Route::put('/data/populasi-per-wilayah/{id}', [PopulationDataController::class, 'updatePopulasiPerWilayah'])
+    ->name('data.populasi.update');
+
     Route::get('/data/rentang-umur', [PopulationDataController::class, 'rentangUmur'])->name('data.rentang-umur');
     Route::get('/data/pendidikan-dalam-kk', [PopulationDataController::class, 'pendidikanDalamKK'])->name('data.pendidikan-kk');
     Route::get('/data/pendidikan-ditempuh', [PopulationDataController::class, 'pendidikanDitempuh'])->name('data.pendidikan-ditempuh');
