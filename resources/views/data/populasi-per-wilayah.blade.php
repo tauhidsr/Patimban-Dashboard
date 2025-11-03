@@ -46,6 +46,7 @@
                                     <th class="px-3 py-2">Perempuan</th>
                                     <th class="px-3 py-2">Total (L+P)</th>
                                     <th class="px-3 py-2">Tahun</th>
+                                    <th class="px-3 py-2">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -58,10 +59,28 @@
                                         <td class="px-3 py-2">{{ $area->perempuan ?? '-' }}</td>
                                         <td class="px-3 py-2 font-semibold">{{ $area->jumlah_penduduk }}</td>
                                         <td class="px-3 py-2">{{ $area->tahun ?? '-' }}</td>
+                                        <td class="px-3 py-2">
+                                            <div class="flex items-center gap-2">
+                                                <a href="{{ route('data.populasi.edit', $area->id) }}"
+                                                   class="px-3 py-1 text-xs text-white rounded bg-amber-500 hover:bg-amber-600">
+                                                    Edit
+                                                </a>
+                                                <form action="{{ route('data.populasi.destroy', $area->id) }}"
+                                                      method="POST"
+                                                      onsubmit="return confirm('Yakin hapus data {{ $area->nama_wilayah }}?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit"
+                                                            class="px-3 py-1 text-xs text-white bg-red-600 rounded hover:bg-red-700">
+                                                        Hapus
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="px-3 py-4 text-center text-gray-500">
+                                        <td colspan="8" class="px-3 py-4 text-center text-gray-500">
                                             Belum ada data penduduk. Silakan isi dari seeder atau form input.
                                         </td>
                                     </tr>

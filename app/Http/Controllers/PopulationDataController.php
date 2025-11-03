@@ -81,6 +81,16 @@ class PopulationDataController extends Controller
         return redirect()->route('data.populasi')->with('success', 'Data berhasil diperbarui.');
     }
 
+    // 🔹 HAPUS data
+    public function destroyPopulasiPerWilayah($id)
+{
+    $area = \App\Models\PopulationArea::findOrFail($id);
+    $area->delete();
+
+    return redirect()->route('data.populasi')->with('success', 'Data berhasil dihapus.');
+}
+
+
     // 🔹 halaman lain (masih placeholder)
     public function rentangUmur()
     {
