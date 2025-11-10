@@ -30,7 +30,7 @@
                     {{-- tombol tambah data --}}
                     <div class="flex justify-end mb-4">
                         <a href="{{ route('data.populasi.create') }}"
-                           class="px-4 py-2 text-sm text-white bg-blue-600 rounded hover:bg-blue-700">
+                        class="px-4 py-2 text-sm text-white bg-blue-600 rounded hover:bg-blue-700">
                             + Tambah Data
                         </a>
                     </div>
@@ -62,12 +62,12 @@
                                         <td class="px-3 py-2">
                                             <div class="flex items-center gap-2">
                                                 <a href="{{ route('data.populasi.edit', $area->id) }}"
-                                                   class="px-3 py-1 text-xs text-white rounded bg-amber-500 hover:bg-amber-600">
+                                                class="px-3 py-1 text-xs text-white rounded bg-amber-500 hover:bg-amber-600">
                                                     Edit
                                                 </a>
                                                 <form action="{{ route('data.populasi.destroy', $area->id) }}"
-                                                      method="POST"
-                                                      onsubmit="return confirm('Yakin hapus data {{ $area->nama_wilayah }}?');">
+                                                    method="POST"
+                                                    onsubmit="return confirm('Yakin hapus data {{ $area->nama_wilayah }}?');">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit"
