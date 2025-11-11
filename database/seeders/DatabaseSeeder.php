@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
     {
         // Jalankan seeder untuk data kependudukan
         $this->call([
+            AdminUserSeeder::class,
             PopulationAreaSeeder::class,
         ]);
     }

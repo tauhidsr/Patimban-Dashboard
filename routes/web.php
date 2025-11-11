@@ -22,29 +22,37 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // ✅ data kependudukan (via controller)
-    Route::get('/data/populasi-per-wilayah', [PopulationDataController::class, 'populasiPerWilayah'])->name('data.populasi');
 
-    // ➕ form tambah data populasi per wilayah
+    // LIST data populasi per wilayah (boleh semua user yang login)
+    Route::get('/data/populasi-per-wilayah', [PopulationDataController::class, 'populasiPerWilayah'])
+        ->name('data.populasi');
+
+    // ➕ form tambah data (admin only)
     Route::get('/data/populasi-per-wilayah/create', [PopulationDataController::class, 'createPopulasiPerWilayah'])
+        ->middleware('is_admin')
         ->name('data.populasi.create');
 
-    // 💾 simpan data populasi per wilayah
+    // 💾 simpan data baru (admin only)
     Route::post('/data/populasi-per-wilayah', [PopulationDataController::class, 'storePopulasiPerWilayah'])
+        ->middleware('is_admin')
         ->name('data.populasi.store');
 
-    // ✏️ edit data populasi per wilayah
+    // ✏️ form edit (admin only)
     Route::get('/data/populasi-per-wilayah/{id}/edit', [PopulationDataController::class, 'editPopulasiPerWilayah'])
+        ->middleware('is_admin')
         ->name('data.populasi.edit');
 
-    // 💾 update data populasi per wilayah
+    // 💾 update data (admin only)
     Route::put('/data/populasi-per-wilayah/{id}', [PopulationDataController::class, 'updatePopulasiPerWilayah'])
+        ->middleware('is_admin')
         ->name('data.populasi.update');
 
-    // 🗑️ hapus data populasi per wilayah
+    // 🗑️ hapus data (admin only)
     Route::delete('/data/populasi-per-wilayah/{id}', [PopulationDataController::class, 'destroyPopulasiPerWilayah'])
+        ->middleware('is_admin')
         ->name('data.populasi.destroy');
 
-
+    // route lain (masih placeholder)
     Route::get('/data/rentang-umur', [PopulationDataController::class, 'rentangUmur'])->name('data.rentang-umur');
     Route::get('/data/pendidikan-dalam-kk', [PopulationDataController::class, 'pendidikanDalamKK'])->name('data.pendidikan-kk');
     Route::get('/data/pendidikan-ditempuh', [PopulationDataController::class, 'pendidikanDitempuh'])->name('data.pendidikan-ditempuh');

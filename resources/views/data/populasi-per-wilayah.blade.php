@@ -27,13 +27,15 @@
             <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
 
-                    {{-- tombol tambah data --}}
-                    <div class="flex justify-end mb-4">
-                        <a href="{{ route('data.populasi.create') }}"
-                        class="px-4 py-2 text-sm text-white bg-blue-600 rounded hover:bg-blue-700">
-                            + Tambah Data
-                        </a>
-                    </div>
+                    {{-- tombol tambah data (hanya admin) --}}
+                    @if (auth()->user()?->role === 'admin')
+                        <div class="flex justify-end mb-4">
+                            <a href="{{ route('data.populasi.create') }}"
+                               class="px-4 py-2 text-sm text-white bg-blue-600 rounded hover:bg-blue-700">
+                                + Tambah Data
+                            </a>
+                        </div>
+                    @endif
 
                     <div class="overflow-x-auto">
                         <table class="min-w-full text-sm text-left">
@@ -46,7 +48,9 @@
                                     <th class="px-3 py-2">Perempuan</th>
                                     <th class="px-3 py-2">Total (L+P)</th>
                                     <th class="px-3 py-2">Tahun</th>
-                                    <th class="px-3 py-2">Aksi</th>
+                                    @if (auth()->user()?->role === 'admin')
+                                        <th class="px-3 py-2">Aksi</th>
+                                    @endif
                                 </tr>
                             </thead>
                             <tbody>
@@ -59,28 +63,32 @@
                                         <td class="px-3 py-2">{{ $area->perempuan ?? '-' }}</td>
                                         <td class="px-3 py-2 font-semibold">{{ $area->jumlah_penduduk }}</td>
                                         <td class="px-3 py-2">{{ $area->tahun ?? '-' }}</td>
-                                        <td class="px-3 py-2">
-                                            <div class="flex items-center gap-2">
-                                                <a href="{{ route('data.populasi.edit', $area->id) }}"
-                                                class="px-3 py-1 text-xs text-white rounded bg-amber-500 hover:bg-amber-600">
-                                                    Edit
-                                                </a>
-                                                <form action="{{ route('data.populasi.destroy', $area->id) }}"
-                                                    method="POST"
-                                                    onsubmit="return confirm('Yakin hapus data {{ $area->nama_wilayah }}?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit"
-                                                            class="px-3 py-1 text-xs text-white bg-red-600 rounded hover:bg-red-700">
-                                                        Hapus
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </td>
+
+                                        @if (auth()->user()?->role === 'admin')
+                                            <td class="px-3 py-2">
+                                                <div class="flex items-center gap-2">
+                                                    <a href="{{ route('data.populasi.edit', $area->id) }}"
+                                                       class="px-3 py-1 text-xs text-white rounded bg-amber-500 hover:bg-amber-600">
+                                                        Edit
+                                                    </a>
+                                                    <form action="{{ route('data.populasi.destroy', $area->id) }}"
+                                                          method="POST"
+                                                          onsubmit="return confirm('Yakin hapus data {{ $area->nama_wilayah }}?');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit"
+                                                                class="px-3 py-1 text-xs text-white bg-red-600 rounded hover:bg-red-700">
+                                                            Hapus
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        @endif
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="px-3 py-4 text-center text-gray-500">
+                                        <td colspan="{{ auth()->user()?->role === 'admin' ? 8 : 7 }}"
+                                            class="px-3 py-4 text-center text-gray-500">
                                             Belum ada data penduduk. Silakan isi dari seeder atau form input.
                                         </td>
                                     </tr>
