@@ -27,14 +27,17 @@ class PopulationDataController extends Controller
     public function storePopulasiPerWilayah(Request $request)
     {
         $validated = $request->validate([
-            'nama_wilayah'    => 'required|string|max:255',
-            'kk'              => 'nullable|integer',
-            'laki_laki'       => 'nullable|integer',
-            'perempuan'       => 'nullable|integer',
-            'jumlah_penduduk' => 'nullable|integer',
-            'tahun'           => 'nullable|integer',
+            'nama_wilayah'    => ['required','string','max:255'],
+            'kk'              => ['nullable','integer','min:0'],
+            'laki_laki'       => ['nullable','integer','min:0'],
+            'perempuan'       => ['nullable','integer','min:0'],
+            'jumlah_penduduk' => ['nullable','integer','min:0'],
+            'tahun'           => ['nullable','integer','digits:4','min:1900','max:2100'],
+            'latitude'        => ['nullable','numeric','between:-90,90'],     // ✅ tambah
+            'longitude'       => ['nullable','numeric','between:-180,180'],   // ✅ tambah
         ]);
 
+        // hitung otomatis total jika kosong
         if (empty($validated['jumlah_penduduk'])) {
             $validated['jumlah_penduduk'] =
                 (int)($validated['laki_laki'] ?? 0) +
@@ -62,12 +65,14 @@ class PopulationDataController extends Controller
         $area = PopulationArea::findOrFail($id);
 
         $validated = $request->validate([
-            'nama_wilayah'    => 'required|string|max:255',
-            'kk'              => 'nullable|integer',
-            'laki_laki'       => 'nullable|integer',
-            'perempuan'       => 'nullable|integer',
-            'jumlah_penduduk' => 'nullable|integer',
-            'tahun'           => 'nullable|integer',
+            'nama_wilayah'    => ['required','string','max:255'],
+            'kk'              => ['nullable','integer','min:0'],
+            'laki_laki'       => ['nullable','integer','min:0'],
+            'perempuan'       => ['nullable','integer','min:0'],
+            'jumlah_penduduk' => ['nullable','integer','min:0'],
+            'tahun'           => ['nullable','integer','digits:4','min:1900','max:2100'],
+            'latitude'        => ['nullable','numeric','between:-90,90'],     // ✅ tambah
+            'longitude'       => ['nullable','numeric','between:-180,180'],   // ✅ tambah
         ]);
 
         if (empty($validated['jumlah_penduduk'])) {
@@ -83,42 +88,18 @@ class PopulationDataController extends Controller
 
     // 🔹 HAPUS data
     public function destroyPopulasiPerWilayah($id)
-{
-    $area = \App\Models\PopulationArea::findOrFail($id);
-    $area->delete();
+    {
+        $area = PopulationArea::findOrFail($id);
+        $area->delete();
 
-    return redirect()->route('data.populasi')->with('success', 'Data berhasil dihapus.');
-}
-
+        return redirect()->route('data.populasi')->with('success', 'Data berhasil dihapus.');
+    }
 
     // 🔹 halaman lain (masih placeholder)
-    public function rentangUmur()
-    {
-        return view('data.rentang-umur');
-    }
-
-    public function pendidikanDalamKK()
-    {
-        return view('data.pendidikan-dalam-kk');
-    }
-
-    public function pendidikanDitempuh()
-    {
-        return view('data.pendidikan-ditempuh');
-    }
-
-    public function pekerjaan()
-    {
-        return view('data.pekerjaan');
-    }
-
-    public function agama()
-    {
-        return view('data.agama');
-    }
-
-    public function jenisKelamin()
-    {
-        return view('data.jenis-kelamin');
-    }
+    public function rentangUmur() { return view('data.rentang-umur'); }
+    public function pendidikanDalamKK() { return view('data.pendidikan-dalam-kk'); }
+    public function pendidikanDitempuh() { return view('data.pendidikan-ditempuh'); }
+    public function pekerjaan() { return view('data.pekerjaan'); }
+    public function agama() { return view('data.agama'); }
+    public function jenisKelamin() { return view('data.jenis-kelamin'); }
 }

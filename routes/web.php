@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MapController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PopulationDataController;
 use Illuminate\Support\Facades\Route;
@@ -16,6 +17,9 @@ Route::get('/dashboard', [DashboardController::class,'index'])
 
 // semua route yang butuh login
 Route::middleware('auth')->group(function () {
+
+    // route gis
+    Route::get('/peta', [MapController::class, 'index'])->name('map.index');
 
     // profil user (bawaan Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

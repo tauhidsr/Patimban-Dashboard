@@ -17,5 +17,7 @@ class PopulationArea extends Model
         'perempuan',
         'jumlah_penduduk',
         'tahun',
+        'latitude',
+        'longitude',
     ];
 }
