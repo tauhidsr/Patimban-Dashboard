@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PopulationDataController;
 use Illuminate\Support\Facades\Route;
@@ -9,9 +10,9 @@ Route::get('/', function () {
 });
 
 // dashboard utama (harus login & verified)
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class,'index'])
+->middleware(['auth','verified'])
+->name('dashboard');
 
 // semua route yang butuh login
 Route::middleware('auth')->group(function () {
