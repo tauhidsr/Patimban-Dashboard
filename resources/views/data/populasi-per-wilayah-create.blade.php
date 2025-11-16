@@ -87,6 +87,39 @@
                             </div>
                         </div>
 
+                        {{-- Latitude & Longitude --}}
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div>
+                                <label class="block mb-1 text-sm font-medium text-gray-700">
+                                    Latitude (opsional)
+                                </label>
+                                <input
+                                    type="text"
+                                    name="latitude"
+                                    value="{{ old('latitude') }}"
+                                    class="w-full border-gray-300 rounded"
+                                    placeholder="-6.4260">
+                                @error('latitude')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="block mb-1 text-sm font-medium text-gray-700">
+                                    Longitude (opsional)
+                                </label>
+                                <input
+                                    type="text"
+                                    name="longitude"
+                                    value="{{ old('longitude') }}"
+                                    class="w-full border-gray-300 rounded"
+                                    placeholder="108.3590">
+                                @error('longitude')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
                         {{-- tombol --}}
                         <div class="flex items-center justify-between pt-2">
                             <a href="{{ route('data.populasi') }}" class="text-sm text-gray-500 hover:underline">
@@ -111,7 +144,7 @@
                             </div>
                         @endif
 
-                        {{-- success (kalau nanti mau ditampilkan di sini) --}}
+                        {{-- success --}}
                         @if (session('success'))
                             <div class="p-3 mt-4 text-sm text-green-700 rounded bg-green-50">
                                 {{ session('success') }}

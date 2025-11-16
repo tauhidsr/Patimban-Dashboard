@@ -16,7 +16,8 @@
 
                         {{-- Nama wilayah --}}
                         <div>
-                            <label class="block mb-1 text-sm font-medium text-gray-700">Nama Wilayah / Dusun / RW / RT</label>
+                            <label class="block mb-1 text-sm font-medium text-gray-700">Nama Wilayah / Dusun / RW /
+                                RT</label>
                             <input type="text" name="nama_wilayah"
                                 value="{{ old('nama_wilayah', $area->nama_wilayah) }}"
                                 class="w-full border-gray-300 rounded" required>
@@ -40,14 +41,12 @@
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                             <div>
                                 <label class="block mb-1 text-sm font-medium text-gray-700">Laki-laki</label>
-                                <input type="number" name="laki_laki"
-                                    value="{{ old('laki_laki', $area->laki_laki) }}"
+                                <input type="number" name="laki_laki" value="{{ old('laki_laki', $area->laki_laki) }}"
                                     class="w-full border-gray-300 rounded">
                             </div>
                             <div>
                                 <label class="block mb-1 text-sm font-medium text-gray-700">Perempuan</label>
-                                <input type="number" name="perempuan"
-                                    value="{{ old('perempuan', $area->perempuan) }}"
+                                <input type="number" name="perempuan" value="{{ old('perempuan', $area->perempuan) }}"
                                     class="w-full border-gray-300 rounded">
                             </div>
                             <div>
@@ -55,6 +54,31 @@
                                 <input type="number" name="jumlah_penduduk"
                                     value="{{ old('jumlah_penduduk', $area->jumlah_penduduk) }}"
                                     class="w-full border-gray-300 rounded">
+                            </div>
+                        </div>
+
+                        {{-- Latitude & Longitude --}}
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div>
+                                <label class="block mb-1 text-sm font-medium text-gray-700">
+                                    Latitude (opsional)
+                                </label>
+                                <input type="text" name="latitude" value="{{ old('latitude', $area->latitude) }}"
+                                    class="w-full border-gray-300 rounded" placeholder="-6.4260">
+                                @error('latitude')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="block mb-1 text-sm font-medium text-gray-700">
+                                    Longitude (opsional)
+                                </label>
+                                <input type="text" name="longitude" value="{{ old('longitude', $area->longitude) }}"
+                                    class="w-full border-gray-300 rounded" placeholder="108.3590">
+                                @error('longitude')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
 

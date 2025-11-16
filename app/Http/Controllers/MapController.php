@@ -10,12 +10,12 @@ class MapController extends Controller
     {
         // hanya kirim yang sudah punya koordinat
         $areas = PopulationArea::whereNotNull('latitude')
-            ->whereNotNull('longitude') // ✅ perbaiki ejaan
+            ->whereNotNull('longitude')
             ->select(
                 'id',
                 'nama_wilayah',
-                'latitude',   // ✅ ikutkan latitude
-                'longitude',  // ✅ ikutkan longitude
+                'latitude',
+                'longitude',
                 'jumlah_penduduk',
                 'kk',
                 'laki_laki',
