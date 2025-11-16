@@ -82,6 +82,12 @@
                                 • Jenis Kelamin
                             </a>
                         </li>
+                        {{-- untuk GIS --}}
+                        <li>
+                            <a href="{{ route('map.index') }}" class="text-blue-600 hover:underline">
+                                • Peta Sebaran Penduduk
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>
