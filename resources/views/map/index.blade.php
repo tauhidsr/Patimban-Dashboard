@@ -43,10 +43,27 @@
         // bounds untuk auto-fit
         const bounds = [];
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        // Base layers (pilihan tampilan peta)
+        const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '© OpenStreetMap'
-        }).addTo(map);
+        });
+
+        const light = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap, © Carto'
+        });
+
+        const satellite = L.tileLayer(
+            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            {
+                maxZoom: 19,
+                attribution: 'Tiles © Esri'
+            }
+        );
+
+        // default pakai OSM
+        osm.addTo(map);
 
         // custom icon hijau
         const greenIcon = new L.Icon({
@@ -58,7 +75,6 @@
         });
 
         areas.forEach(a => {
-            // marker hijau
             const marker = L.marker([a.latitude, a.longitude], { icon: greenIcon }).addTo(map);
 
             const info = `
@@ -80,32 +96,32 @@
             map.fitBounds(bounds, { padding: [40, 40] });
         }
 
+        // Legend (Keterangan)
         const legend = L.control({ position: "bottomright" });
 
         legend.onAdd = function () {
             const div = L.DomUtil.create("div", "legend");
             div.innerHTML = `
-        <div style="
-            background: white;
-            padding: 10px 14px;
-            border-radius: 8px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-            font-size: 12px;
-            line-height: 1.4;
-        ">
-            <strong>Keterangan:</strong><br>
-            <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png"
-                style="width: 14px; vertical-align: middle; margin-right: 4px;">
-            Wilayah Penduduk
-        </div>
-    `;
+                <div style="
+                    background: white;
+                    padding: 10px 14px;
+                    border-radius: 8px;
+                    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+                    font-size: 12px;
+                    line-height: 1.4;
+                ">
+                    <strong>Keterangan:</strong><br>
+                    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png"
+                        style="width: 14px; vertical-align: middle; margin-right: 4px;">
+                    Wilayah Penduduk
+                </div>
+            `;
             return div;
         };
 
-        // tambah legend ke map
         legend.addTo(map);
 
-        // zoom map
+        // Tombol Reset Zoom
         const resetControl = L.Control.extend({
             options: { position: 'topleft' },
 
@@ -123,15 +139,23 @@
 
                 btn.onclick = () => {
                     if (bounds.length > 0) {
-                        map.fitBounds(bounds, {padding: [40,40]});
+                        map.fitBounds(bounds, { padding: [40, 40] });
                     }
                 };
 
                 return btn;
             }
         });
-        
+
         map.addControl(new resetControl());
 
+        // Layer control (pilihan tampilan peta)
+        const baseMaps = {
+            'OpenStreetMap': osm,
+            'Peta Light': light,
+            'Peta Satelit': satellite,
+        };
+
+        L.control.layers(baseMaps, null, { position: 'topleft' }).addTo(map);
     </script>
 </x-app-layout>
