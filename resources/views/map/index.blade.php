@@ -65,12 +65,20 @@
         // default pakai OSM
         osm.addTo(map);
 
-        // custom icon hijau
+        // custom icon hijau & kuning
         const greenIcon = new L.Icon({
             iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
             shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.4/images/marker-shadow.png',
             iconSize: [25, 41],
             iconAnchor: [12, 41],
+            shadowSize: [41, 41]
+        });
+
+        const yellowIcon = new L.Icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-yellow.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.4/images/marker-shadow.png',
+            iconSize: [30, 50],
+            iconAnchor: [15, 50],
             shadowSize: [41, 41]
         });
 
@@ -87,6 +95,16 @@
                 </div>
             `;
             marker.bindPopup(info);
+
+            // efek klik: marker kuning
+            marker.on('click', function () {
+                marker.setIcon(yellowIcon);
+            });
+
+            // saat popup ditutup: kembali hijau
+            marker.on('popupclose', function () {
+                marker.setIcon(greenIcon);
+            });
 
             bounds.push([a.latitude, a.longitude]);
         });
