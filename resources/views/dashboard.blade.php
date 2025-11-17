@@ -53,7 +53,7 @@
                             </a>
                         </li>
                         <li>
-                            <a href="{{ route('data.rentang-umur') }}" class="text-blue-600 hover:underline">
+                            <a href="{{ route('rentang-umur.index') }}" class="text-blue-600 hover:underline">
                                 • Data Rentang Umur
                             </a>
                         </li>
