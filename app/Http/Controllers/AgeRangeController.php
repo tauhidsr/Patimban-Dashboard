@@ -10,10 +10,20 @@ class AgeRangeController extends Controller
     // list data rentang umur
     public function index()
     {
-        $items = AgeRange::orderBy('kategori')->get();
+        // urutkan semua & belum mengisi dibawah
+        $items = AgeRange::orderByRaw("CASE WHEN kategori = 'Belum Mengisi' THEN 2 ELSE 1 END")
+        ->orderBy('id')
+        ->get();
+
+        $summary = [
+            'total_laki' => $items->sum('laki_laki'),
+            'total_perempuan'=> $items->sum('perempuan'),
+            'total_jiwa'=> $items->sum('total'),
+        ];
 
         return view('data.rentang-umur', [
             'items' => $items,
+            'summary'=> $summary,
         ]);
     }
 

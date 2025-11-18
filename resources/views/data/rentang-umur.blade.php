@@ -82,6 +82,19 @@
                                         </td>
                                     </tr>
                                 @endforelse
+
+                                {{-- baris total keseluruhan --}}
+                                @if (!empty($summary) && $items->count() > 0)
+                                    <tr class="font-semibold border-t bg-gray-50">
+                                        <td class="px-3 py-2" colspan="2">TOTAL</td>
+                                        <td class="px-3 py-2">{{ $summary['total_laki'] }}</td>
+                                        <td class="px-3 py-2">{{ $summary['total_perempuan'] }}</td>
+                                        <td class="px-3 py-2">{{ $summary['total_jiwa'] }}</td>
+                                        <td class="px-3 py-2">-</td>
+                                        <td class="px-3 py-2"></td>
+                                    </tr>
+                                @endif
+                            </tbody>
                             </tbody>
                         </table>
                     </div>
