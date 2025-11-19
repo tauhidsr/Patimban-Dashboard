@@ -95,6 +95,21 @@ Route::middleware('auth')->group(function () {
     Route::get('/data/pekerjaan', [PopulationDataController::class, 'pekerjaan'])->name('data.pekerjaan');
     Route::get('/data/agama', [PopulationDataController::class, 'agama'])->name('data.agama');
     Route::get('/data/jenis-kelamin', [PopulationDataController::class, 'jenisKelamin'])->name('data.jenis-kelamin');
+
+    // modul peristiwa kependudukan
+    Route::prefix('peristiwa')->group(function () {
+        // list semua peristiwa (admin + viewer + dusun/rw/rt)
+        Route::get('/', [\App\Http\Controllers\PopulationEventController::class, 'index'])
+        ->name('events.index');
+
+        // form tambah peristiwa baru
+        Route::get('/create', [\App\Http\Controllers\PopulationEventController::class, 'create'])
+        ->name('events.create');
+
+        // simpan peristiwa baru
+        Route::post('/', [\App\Http\Controllers\PopulationEventController::class, 'store'])
+        ->name('events.store');
+    });
 });
 
 require __DIR__ . '/auth.php';
