@@ -16,7 +16,7 @@
                     <a href="#" class="text-blue-600 hover:underline">• Kelahiran</a>
                     <a href="#" class="text-blue-600 hover:underline">• Datang</a>
                     <a href="#" class="text-blue-600 hover:underline">• Pindah</a>
-                    <a href="#" class="text-blue-600 hover:underline">• Meninggal</a>
+                    <a href="{{ route('events.meninggal.create') }}" class="text-blue-600 hover:underline">• Meninggal</a>
                     <a href="#" class="text-blue-600 hover:underline">• Hilang</a>
                     <a href="#" class="text-blue-600 hover:underline">• Penduduk Sementara (1×24 jam)</a>
                 </div>

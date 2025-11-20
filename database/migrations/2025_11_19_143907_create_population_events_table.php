@@ -14,16 +14,16 @@ return new class extends Migration
         Schema::create('population_events', function (Blueprint $table) {
             $table->id();
 
-            // relasi ke master penduduk (boleh null kalau belum ada dimaster)
+            // relasi ke master penduduk (boleh null kalau belum ada di master)
             $table->unsignedBigInteger('citizen_id')->nullable();
 
             // identitas dasar saat peristiwa
-            $table->string('nuk', 20)->nullable();
-            $table->string('no_kk',20)->nullable();
-            $table->string('nama',150)->nullable();
+            $table->string('nik', 20)->nullable();   // ⬅️ TADINYA "nuk", SEKARANG "nik"
+            $table->string('no_kk', 20)->nullable();
+            $table->string('nama', 150)->nullable();
 
             // jenis peristiwa
-            $table->enum('jenis_peristiwa',[
+            $table->enum('jenis_peristiwa', [
                 'lahir',
                 'datang',
                 'pindah',
@@ -49,14 +49,11 @@ return new class extends Migration
             $table->unsignedBigInteger('created_by')->nullable();
 
             // status verifikasi oleh admin desa
-            $table->enum('status_verifikasi',['menunggu','disetujui','ditolak'])
-            ->default('menunggu');
+            $table->enum('status_verifikasi', ['menunggu', 'disetujui', 'ditolak'])
+                ->default('menunggu');
             $table->text('catatan_verifikasi')->nullable();
 
-            // bidang khusus per jenis peristiwa
-            // semua nullable terisi pada jenis tertentu
-
-            // MENINGGAL
+            // -------- MENINGGAL --------
             $table->string('tempat_meninggal')->nullable();
             $table->time('jam_kematian')->nullable();
             $table->enum('penyebab_kematian', [
@@ -77,7 +74,7 @@ return new class extends Migration
             $table->string('nomor_akta_kematian')->nullable();
             $table->string('file_akta_kematian_path')->nullable();
 
-            // PINDAH
+            // -------- PINDAH --------
             $table->enum('tujuan_pindah', [
                 'keluar_desa',
                 'keluar_kecamatan',
@@ -87,7 +84,7 @@ return new class extends Migration
             ])->nullable();
             $table->text('alamat_tujuan')->nullable();
 
-            // LAHIR
+            // -------- LAHIR --------
             $table->string('tempat_lahir')->nullable();
             $table->time('jam_lahir')->nullable();
             $table->enum('penolong_kelahiran', [
@@ -98,7 +95,7 @@ return new class extends Migration
                 'lainnya',
             ])->nullable();
 
-            // DATANG
+            // -------- DATANG --------
             $table->enum('asal_datang_kategori', [
                 'dalam_kecamatan',
                 'luar_kecamatan',
@@ -109,8 +106,8 @@ return new class extends Migration
             $table->text('alamat_asli')->nullable();
             $table->string('alasan_datang')->nullable();
 
-            // (Untuk sementara, penduduk sementara 1x24 jam pakai tabel lain:
-            //  temporary_residents, tapi peristiwanya akan tercatat di sini
+            // (Penduduk sementara 1x24 jam pakai tabel lain:
+            //  temporary_residents. Peristiwa tetap dicatat di sini
             //  dengan jenis: 'sementara_masuk' / 'sementara_keluar')
 
             $table->timestamps();
