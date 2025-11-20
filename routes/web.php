@@ -119,27 +119,31 @@ Route::middleware('auth')->group(function () {
     // =========================
     // PERISTIWA KEPENDUDUKAN
     // =========================
+    // modul peristiwa kependudukan
     Route::prefix('peristiwa')->group(function () {
-
         // list semua peristiwa
-        Route::get('/', [PopulationEventController::class, 'index'])
+        Route::get('/', [\App\Http\Controllers\PopulationEventController::class, 'index'])
             ->name('events.index');
 
-        // halaman pilih jenis peristiwa
-        Route::get('/create', [PopulationEventController::class, 'create'])
+        // form pilih jenis peristiwa (nanti bisa ada lahir/datang/dll)
+        Route::get('/create', [\App\Http\Controllers\PopulationEventController::class, 'create'])
             ->name('events.create');
 
-        // FORM khusus peristiwa meninggal
-        Route::get('/meninggal/create', [PopulationEventController::class, 'createMeninggal'])
+        // form peristiwa MENINGGAL
+        Route::get('/meninggal/create', [\App\Http\Controllers\PopulationEventController::class, 'createMeninggal'])
             ->name('events.meninggal.create');
 
-        // SIMPAN peristiwa meninggal (POST) ✅
-        Route::post('/meninggal/store', [PopulationEventController::class, 'storeMeninggal'])
+        // simpan peristiwa MENINGGAL
+        Route::post('/meninggal/store', [\App\Http\Controllers\PopulationEventController::class, 'storeMeninggal'])
             ->name('events.meninggal.store');
 
-        // (opsional) route POST umum kalau nanti dibutuhkan
-        Route::post('/', [PopulationEventController::class, 'store'])
+        // (opsional) simpan peristiwa umum lain
+        Route::post('/', [\App\Http\Controllers\PopulationEventController::class, 'store'])
             ->name('events.store');
+
+        // halaman detail peristiwa
+        Route::get('/{id}', [\App\Http\Controllers\PopulationEventController::class, 'show'])
+            ->name('events.show');
     });
 });
 

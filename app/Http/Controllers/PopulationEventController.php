@@ -92,6 +92,14 @@ class PopulationEventController extends Controller
     return redirect()
         ->route('events.index')
         ->with('success', 'Peristiwa meninggal berhasil dicatat dan menunggu verifikasi admin.');
-    }   
+    }
 
+    public function show($id)
+    {
+        $event = PopulationEvent::findOrFail($id);
+
+        return view('events.show', [
+            'event'=> $event,
+            ]);
+    }
 }
