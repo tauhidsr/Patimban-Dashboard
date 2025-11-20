@@ -120,6 +120,7 @@ Route::middleware('auth')->group(function () {
     // PERISTIWA KEPENDUDUKAN
     // =========================
     // modul peristiwa kependudukan
+    // modul peristiwa kependudukan
     Route::prefix('peristiwa')->group(function () {
         // list semua peristiwa
         Route::get('/', [\App\Http\Controllers\PopulationEventController::class, 'index'])
@@ -137,11 +138,17 @@ Route::middleware('auth')->group(function () {
         Route::post('/meninggal/store', [\App\Http\Controllers\PopulationEventController::class, 'storeMeninggal'])
             ->name('events.meninggal.store');
 
-        // (opsional) simpan peristiwa umum lain
+        // (opsional) simpan peristiwa baru umum
         Route::post('/', [\App\Http\Controllers\PopulationEventController::class, 'store'])
             ->name('events.store');
 
-        // halaman detail peristiwa
+        // 🔹 AKSI VERIFIKASI (KHUSUS ADMIN)
+        Route::middleware('is_admin')->group(function () {
+            Route::post('/{id}/verifikasi', [\App\Http\Controllers\PopulationEventController::class, 'verify'])
+                ->name('events.verify');
+        });
+
+        // 🔹 halaman detail peristiwa
         Route::get('/{id}', [\App\Http\Controllers\PopulationEventController::class, 'show'])
             ->name('events.show');
     });

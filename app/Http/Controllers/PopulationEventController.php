@@ -102,4 +102,25 @@ class PopulationEventController extends Controller
             'event'=> $event,
             ]);
     }
+
+        // VERIFIKASI peristiwa oleh admin
+    public function verify(Request $request, $id)
+    {
+        $event = PopulationEvent::findOrFail($id);
+
+        // validasi input
+        $validated = $request->validate([
+            'status_verifikasi'   => 'required|in:menunggu,disetujui,ditolak',
+            'catatan_verifikasi'  => 'nullable|string',
+        ]);
+
+        $event->status_verifikasi  = $validated['status_verifikasi'];
+        $event->catatan_verifikasi = $validated['catatan_verifikasi'] ?? null;
+        $event->save();
+
+        return redirect()
+            ->route('events.show', $event->id)
+            ->with('success', 'Status verifikasi peristiwa berhasil diperbarui.');
+    }
+
 }

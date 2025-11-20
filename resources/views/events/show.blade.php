@@ -9,13 +9,15 @@
     <div class="py-6">
         <div class="max-w-4xl mx-auto space-y-6 sm:px-6 lg:px-8">
             <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
+
+                {{-- Header identitas + jenis peristiwa --}}
                 <div class="flex items-center justify-between px-6 py-4 border-b">
                     <div>
                         <p class="text-sm text-gray-500">Nama Penduduk</p>
                         <p class="text-lg font-semibold text-gray-900">
                             {{ $event->nama ?? '-' }}
                         </p>
-                        <p class="text-sm text-gray-500">
+                        <p class="mt-1 text-sm text-gray-500">
                             NIK: {{ $event->nik ?? '-' }} &middot;
                             No KK: {{ $event->no_kk ?? '-' }}
                         </p>
@@ -35,6 +37,7 @@
                     @endphp
 
                     <div class="text-right">
+                        {{-- Badge jenis peristiwa --}}
                         <span class="inline-flex mb-1 px-3 py-1 text-xs font-semibold rounded-full
                             @if($event->jenis_peristiwa === 'meninggal')
                                 bg-red-100 text-red-800
@@ -48,6 +51,8 @@
                         ">
                             {{ $labelJenis }}
                         </span>
+
+                        {{-- Badge status verifikasi --}}
                         <div>
                             <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full
                                 @if($event->status_verifikasi === 'menunggu')
@@ -64,28 +69,31 @@
                     </div>
                 </div>
 
+                {{-- Body detail --}}
                 <div class="px-6 py-4 space-y-4">
+                    {{-- Tanggal peristiwa & lapor --}}
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div>
                             <p class="text-xs font-semibold text-gray-500 uppercase">Tanggal Peristiwa</p>
                             <p class="mt-1 text-sm text-gray-800">
-                                {{ optional($event->tanggal_peristiwa)->format('d-m-Y') ?? '-' }}
+                                {{ $event->tanggal_peristiwa ? $event->tanggal_peristiwa->format('d-m-Y') : '-' }}
                             </p>
                         </div>
                         <div>
                             <p class="text-xs font-semibold text-gray-500 uppercase">Tanggal Lapor</p>
                             <p class="mt-1 text-sm text-gray-800">
-                                {{ optional($event->tanggal_lapor)->format('d-m-Y') ?? '-' }}
+                                {{ $event->tanggal_lapor ? $event->tanggal_lapor->format('d-m-Y') : '-' }}
                             </p>
                         </div>
                     </div>
 
-                    {{-- Detail khusus meninggal (kalau jenisnya meninggal) --}}
+                    {{-- Detail KHUSUS MENINGGAL --}}
                     @if($event->jenis_peristiwa === 'meninggal')
                         <div class="pt-4 mt-2 border-t">
                             <h3 class="mb-2 text-sm font-semibold text-gray-700">
                                 Detail Peristiwa Meninggal
                             </h3>
+
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <div>
                                     <p class="text-xs font-semibold text-gray-500 uppercase">Tempat Meninggal</p>
@@ -134,6 +142,77 @@
                         </div>
                     @endif
 
+                    {{-- Info Verifikasi Admin --}}
+                    <div class="pt-4 mt-2 border-t">
+                        <p class="text-xs font-semibold text-gray-500 uppercase">Status Verifikasi Admin</p>
+                        <p class="mt-1 text-sm text-gray-800">
+                            {{ ucfirst($event->status_verifikasi) }}
+                            @if ($event->catatan_verifikasi)
+                                — <span class="text-gray-600">"{{ $event->catatan_verifikasi }}"</span>
+                            @endif
+                        </p>
+                    </div>
+
+                    {{-- Form Ubah Verifikasi (khusus admin) --}}
+                    @auth
+                        @if(auth()->user()->role === 'admin')
+                            <div class="pt-4 mt-2 border-t">
+                                <p class="mb-2 text-xs font-semibold text-gray-500 uppercase">Ubah Status Verifikasi</p>
+
+                                {{-- error verifikasi --}}
+                                @if ($errors->any())
+                                    <div class="p-2 mb-2 text-xs text-red-800 bg-red-100 border border-red-200 rounded">
+                                        <ul class="pl-4 list-disc">
+                                            @foreach ($errors->all() as $error)
+                                                <li>{{ $error }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
+
+                                <form action="{{ route('events.verify', $event->id) }}" method="POST"
+                                    class="space-y-3 sm:flex sm:items-end sm:space-y-0 sm:space-x-3">
+                                    @csrf
+
+                                    <div>
+                                        <label class="block mb-1 text-xs font-medium text-gray-700">
+                                            Status
+                                        </label>
+                                        <select name="status_verifikasi" class="text-sm border-gray-300 rounded">
+                                            <option value="menunggu" {{ $event->status_verifikasi === 'menunggu' ? 'selected' : '' }}>
+                                                Menunggu
+                                            </option>
+                                            <option value="disetujui" {{ $event->status_verifikasi === 'disetujui' ? 'selected' : '' }}>
+                                                Disetujui
+                                            </option>
+                                            <option value="ditolak" {{ $event->status_verifikasi === 'ditolak' ? 'selected' : '' }}>
+                                                Ditolak
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <div class="flex-1">
+                                        <label class="block mb-1 text-xs font-medium text-gray-700">
+                                            Catatan Verifikasi (opsional)
+                                        </label>
+                                        <input type="text" name="catatan_verifikasi"
+                                            value="{{ old('catatan_verifikasi', $event->catatan_verifikasi) }}"
+                                            class="w-full text-sm border-gray-300 rounded"
+                                            placeholder="misal: data sudah sesuai dengan surat keterangan">
+                                    </div>
+
+                                    <div>
+                                        <button type="submit"
+                                            class="px-4 py-2 text-xs font-semibold text-white bg-green-600 rounded hover:bg-green-700">
+                                            Simpan Verifikasi
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        @endif
+                    @endauth
+
+
                     {{-- Catatan umum --}}
                     <div class="pt-4 mt-2 border-t">
                         <p class="text-xs font-semibold text-gray-500 uppercase">Catatan Peristiwa</p>
@@ -143,12 +222,23 @@
                     </div>
                 </div>
 
+                {{-- Footer navigasi --}}
                 <div class="flex items-center justify-between px-6 py-4 border-t bg-gray-50">
                     <a href="{{ route('events.index') }}" class="text-sm text-gray-600 hover:underline">
                         ← Kembali ke daftar peristiwa
                     </a>
-                    {{-- nanti di sini bisa kita tambahkan tombol Setujui / Tolak untuk admin --}}
+
+                    {{-- nanti di sini bisa kita tambah tombol Setujui / Tolak untuk admin --}}
+                    {{-- <div class="space-x-2">
+                        <button class="px-3 py-1 text-xs text-white bg-green-600 rounded hover:bg-green-700">
+                            Setujui
+                        </button>
+                        <button class="px-3 py-1 text-xs text-white bg-red-600 rounded hover:bg-red-700">
+                            Tolak
+                        </button>
+                    </div> --}}
                 </div>
+
             </div>
         </div>
     </div>
