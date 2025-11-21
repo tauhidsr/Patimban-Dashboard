@@ -10,7 +10,7 @@
         <div class="max-w-4xl mx-auto space-y-6 sm:px-6 lg:px-8">
             <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
 
-                {{-- Header identitas + jenis peristiwa --}}
+                {{-- header identitas + jenis peristiwa --}}
                 <div class="flex items-center justify-between px-6 py-4 border-b">
                     <div>
                         <p class="text-sm text-gray-500">Nama Penduduk</p>
@@ -37,7 +37,7 @@
                     @endphp
 
                     <div class="text-right">
-                        {{-- Badge jenis peristiwa --}}
+                        {{-- badge jenis peristiwa --}}
                         <span class="inline-flex mb-1 px-3 py-1 text-xs font-semibold rounded-full
                             @if($event->jenis_peristiwa === 'meninggal')
                                 bg-red-100 text-red-800
@@ -52,7 +52,7 @@
                             {{ $labelJenis }}
                         </span>
 
-                        {{-- Badge status verifikasi --}}
+                        {{-- badge status verifikasi --}}
                         <div>
                             <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full
                                 @if($event->status_verifikasi === 'menunggu')
@@ -69,9 +69,9 @@
                     </div>
                 </div>
 
-                {{-- Body detail --}}
+                {{-- body detail --}}
                 <div class="px-6 py-4 space-y-4">
-                    {{-- Tanggal peristiwa & lapor --}}
+                    {{-- tanggal peristiwa & lapor --}}
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div>
                             <p class="text-xs font-semibold text-gray-500 uppercase">Tanggal Peristiwa</p>
@@ -142,7 +142,7 @@
                         </div>
                     @endif
 
-                    {{-- Info Verifikasi Admin --}}
+                    {{-- info verifikasi admin --}}
                     <div class="pt-4 mt-2 border-t">
                         <p class="text-xs font-semibold text-gray-500 uppercase">Status Verifikasi Admin</p>
                         <p class="mt-1 text-sm text-gray-800">
@@ -153,7 +153,7 @@
                         </p>
                     </div>
 
-                    {{-- Form Ubah Verifikasi (khusus admin) --}}
+                    {{-- form ubah verifikasi (khusus admin) --}}
                     @auth
                         @if(auth()->user()->role === 'admin')
                             <div class="pt-4 mt-2 border-t">
@@ -213,7 +213,7 @@
                     @endauth
 
 
-                    {{-- Catatan umum --}}
+                    {{-- catatan umum --}}
                     <div class="pt-4 mt-2 border-t">
                         <p class="text-xs font-semibold text-gray-500 uppercase">Catatan Peristiwa</p>
                         <p class="mt-1 text-sm text-gray-800 whitespace-pre-line">
@@ -222,7 +222,7 @@
                     </div>
                 </div>
 
-                {{-- Footer navigasi --}}
+                {{-- footer navigasi --}}
                 <div class="flex items-center justify-between px-6 py-4 border-t bg-gray-50">
                     <a href="{{ route('events.index') }}" class="text-sm text-gray-600 hover:underline">
                         ← Kembali ke daftar peristiwa

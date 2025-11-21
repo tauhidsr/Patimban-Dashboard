@@ -120,7 +120,6 @@ Route::middleware('auth')->group(function () {
     // PERISTIWA KEPENDUDUKAN
     // =========================
     // modul peristiwa kependudukan
-    // modul peristiwa kependudukan
     Route::prefix('peristiwa')->group(function () {
         // list semua peristiwa
         Route::get('/', [\App\Http\Controllers\PopulationEventController::class, 'index'])
@@ -142,13 +141,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [\App\Http\Controllers\PopulationEventController::class, 'store'])
             ->name('events.store');
 
-        // 🔹 AKSI VERIFIKASI (KHUSUS ADMIN)
+        // aksi verifikasi (KHUSUS ADMIN)
         Route::middleware('is_admin')->group(function () {
             Route::post('/{id}/verifikasi', [\App\Http\Controllers\PopulationEventController::class, 'verify'])
                 ->name('events.verify');
         });
 
-        // 🔹 halaman detail peristiwa
+        // halaman detail peristiwa
         Route::get('/{id}', [\App\Http\Controllers\PopulationEventController::class, 'show'])
             ->name('events.show');
     });

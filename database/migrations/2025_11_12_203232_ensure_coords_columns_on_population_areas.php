@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Tambah kolom yang belum ada
+        // tambah kolom yang belum ada
         if (!Schema::hasColumn('population_areas', 'latitude')) {
             Schema::table('population_areas', function (Blueprint $table) {
                 $table->decimal('latitude', 10, 7)->nullable()->after('tahun');
@@ -25,7 +25,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        // Aman: drop hanya kalau ada
+        // aman: drop hanya kalau ada
         if (Schema::hasColumn('population_areas', 'longitude')) {
             Schema::table('population_areas', function (Blueprint $table) {
                 $table->dropColumn('longitude');

@@ -9,14 +9,14 @@
     <div class="py-6">
         <div class="mx-auto space-y-6 max-w-7xl sm:px-6 lg:px-8">
 
-            {{-- Info singkat --}}
+            {{-- info singkat --}}
             <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     Halaman ini menampilkan data penduduk Desa Patimban berdasarkan kelompok rentang umur.
                 </div>
             </div>
 
-            {{-- ⭐ DITAMBAHKAN: Kartu grafik ringkasan rentang umur --}}
+            {{-- kartu grafik ringkasan rentang umur --}}
             <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <h3 class="mb-4 text-lg font-semibold text-gray-800">
@@ -39,19 +39,20 @@
                     </div>
                 </div>
             </div>
-            {{-- ⭐ END: Kartu grafik --}}
 
             {{-- Tabel data --}}
             <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
 
-                    {{-- tombol tambah data (hanya untuk admin, nanti diakses via middleware) --}}
-                    <div class="flex justify-end mb-4">
-                        <a href="{{ route('rentang-umur.create') }}"
-                            class="px-4 py-2 text-sm text-white bg-blue-600 rounded hover:bg-blue-700">
-                            + Tambah Data Rentang Umur
-                        </a>
-                    </div>
+                    {{-- tombol tambah data (hanya admin) --}}
+                    @if (auth()->user()?->role === 'admin')
+                        <div class="flex justify-end mb-4">
+                            <a href="{{ route('rentang-umur.create') }}"
+                                class="px-4 py-2 text-sm text-white bg-blue-600 rounded hover:bg-blue-700">
+                                + Tambah Data Rentang Umur
+                            </a>
+                        </div>
+                    @endif
 
                     {{-- pesan sukses --}}
                     @if (session('success'))
@@ -108,7 +109,7 @@
                                     </tr>
                                 @endforelse
 
-                                {{-- ⭐ Baris TOTAL keseluruhan --}}
+                                {{-- baris total keseluruhan --}}
                                 @if (!empty($summary) && $items->count() > 0)
                                     <tr class="font-semibold border-t bg-gray-50">
                                         <td class="px-3 py-2" colspan="2">TOTAL</td>
@@ -129,7 +130,7 @@
         </div>
     </div>
 
-    {{-- ⭐ DITAMBAHKAN: Script Chart.js untuk visualisasi rentang umur --}}
+    {{-- visualisasi rentang umur --}}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const ageLabels = @json($items->pluck('kategori'));
@@ -206,5 +207,4 @@
             });
         }
     </script>
-    {{-- ⭐ END Script Chart.js --}}
 </x-app-layout>

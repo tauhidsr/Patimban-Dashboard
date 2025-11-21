@@ -14,7 +14,7 @@
                         @csrf
                         @method('PUT')
 
-                        {{-- Kelompok umur (dropdown) --}}
+                        {{-- kelompok umur (dropdown) --}}
                         <div>
                             <label class="block mb-1 text-sm font-medium text-gray-700">
                                 Kelompok Rentang Umur
@@ -36,7 +36,7 @@
                             </p>
                         </div>
 
-                        {{-- Laki-laki & Perempuan --}}
+                        {{-- L & P --}}
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                             <div>
                                 <label class="block mb-1 text-sm font-medium text-gray-700">
@@ -64,7 +64,7 @@
                             </div>
                         </div>
 
-                        {{-- Tahun --}}
+                        {{-- tahun --}}
                         <div class="max-w-xs">
                             <label class="block mb-1 text-sm font-medium text-gray-700">
                                 Tahun
@@ -96,7 +96,7 @@
                             </div>
                         @endif
 
-                        {{-- success (opsional) --}}
+                        {{-- success --}}
                         @if (session('success'))
                             <div class="p-3 mt-4 text-sm text-green-700 rounded bg-green-50">
                                 {{ session('success') }}

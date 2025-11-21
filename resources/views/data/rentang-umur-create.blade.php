@@ -29,7 +29,7 @@
                             </p>
                         </div>
 
-                        {{-- laki-laki & perempuan --}}
+                        {{-- L & P --}}
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                             <div>
                                 <label class="block mb-1 text-sm font-medium text-gray-700">

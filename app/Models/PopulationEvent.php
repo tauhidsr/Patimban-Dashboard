@@ -11,7 +11,7 @@ class PopulationEvent extends Model
 
     protected $table = 'population_events';
 
-    //field yang boleh diisi
+    // field yang boleh diisi
     protected $fillable = [
         'citizen_id',
         'nik',
@@ -28,7 +28,7 @@ class PopulationEvent extends Model
         'status_verifikasi',
         'catatan_verifikasi',
 
-        // meninggal
+        // MENINGGAL
         'tempat_meninggal',
         'jam_kematian',
         'penyebab_kematian',
@@ -36,18 +36,18 @@ class PopulationEvent extends Model
         'nomor_akta_kematian',
         'file_akta_kematian_path',
 
-        // pindah
+        // PINDAH
         'tujuan_pindah',
         'alamat_tujuan',
 
-        // lahir
+        // LAHIR
         'tempat_lahir',
         'jam_lahir',
         'penolong_kelahiran',
 
-        // datang
+        // DATANG
         'asal_datang_kategori',
-        'alamat_asal',
+        'alamat_asli',
         'alasan_datang',
     ];
 
@@ -59,9 +59,7 @@ class PopulationEvent extends Model
         'jam_lahir'         => 'datetime:H:i',
     ];
 
-    // relasi ke master penduduk (citizens)
-    // boleh null kalau peristiwa diinput sebelum data master lengkap
-
+    // relasi ke master penduduk
     public function citizen()
     {
         return $this->belongsTo(Citizen::class);
@@ -70,6 +68,6 @@ class PopulationEvent extends Model
     // relasi ke user yang menginput peristiwa
     public function creator()
     {
-        return $this->belongsTo(User::class,'created_by');
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

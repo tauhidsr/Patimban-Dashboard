@@ -10,21 +10,21 @@ class EducationInKKController extends Controller
     // list pendidikan dalam KK
     public function index()
     {
-        // urutkan semua kecuali "belum mengisi"
+        // urutkan semua, "BELUM MENGISI" di bawah
         $items = EducationInKK::orderByRaw("CASE WHEN kategori = 'BELUM MENGISI' THEN 2 ELSE 1 END")
-        ->orderBy('id')
-        ->get();
+            ->orderBy('id')
+            ->get();
 
         // ringkasan total
         $summary = [
-            'total_laki'=> $items ->sum('laki_laki'),
-            'total_perempuan'=> $items ->sum('perempuan'),
-            'total_jika'=> $items ->sum('total'),
+            'total_laki'      => $items->sum('laki_laki'),
+            'total_perempuan' => $items->sum('perempuan'),
+            'total_jiwa'      => $items->sum('total'),
         ];
 
         return view('data.pendidikan-dalam-kk', [
-            'items'=> $items,
-            'summary'=> $summary,
+            'items'   => $items,
+            'summary' => $summary,
         ]);
     }
 
@@ -38,25 +38,25 @@ class EducationInKKController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'kategori'=> 'required|string|max:255',
-            'laki_laki'=> 'nullable|integer',
-            'perempuan'=> 'nullable|integer',
-            'total'=> 'nullable|integer',
-            'tahun'=> 'nullable|integer',
+            'kategori'   => 'required|string|max:255',
+            'laki_laki'  => 'nullable|integer',
+            'perempuan'  => 'nullable|integer',
+            'total'      => 'nullable|integer',
+            'tahun'      => 'nullable|integer',
         ]);
 
         // total hitung otomatis L+P
         if (empty($validated['total'])) {
             $validated['total'] =
-            (int)($validated['laki_laki'] ?? 0) +
-            (int)($validated['perempuan'] ??0);
+                (int) ($validated['laki_laki'] ?? 0) +
+                (int) ($validated['perempuan'] ?? 0);
         }
 
         EducationInKK::create($validated);
 
         return redirect()
-        ->route('pendidikan-kk.index')
-        ->with('success','Data pendidikan dalam KK berhasil ditambahkan');
+            ->route('pendidikan-kk.index')
+            ->with('success', 'Data pendidikan dalam KK berhasil ditambahkan');
     }
 
     // form edit data
@@ -65,12 +65,11 @@ class EducationInKKController extends Controller
         $item = EducationInKK::findOrFail($id);
 
         return view('data.pendidikan-dalam-kk-edit', [
-            'item'=> $item,
-            ]);
+            'item' => $item,
+        ]);
     }
 
     // update data
-
     public function update(Request $request, $id)
     {
         $item = EducationInKK::findOrFail($id);
@@ -85,8 +84,8 @@ class EducationInKKController extends Controller
 
         if (empty($validated['total'])) {
             $validated['total'] =
-                (int)($validated['laki_laki'] ?? 0) +
-                (int)($validated['perempuan'] ?? 0);
+                (int) ($validated['laki_laki'] ?? 0) +
+                (int) ($validated['perempuan'] ?? 0);
         }
 
         $item->update($validated);

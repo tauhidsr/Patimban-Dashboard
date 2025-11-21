@@ -14,7 +14,7 @@
                         @csrf
                         @method('PUT')
 
-                        {{-- Nama wilayah --}}
+                        {{-- nama wilayah --}}
                         <div>
                             <label class="block mb-1 text-sm font-medium text-gray-700">Nama Wilayah / Dusun / RW /
                                 RT</label>
@@ -23,7 +23,7 @@
                                 class="w-full border-gray-300 rounded" required>
                         </div>
 
-                        {{-- KK & Tahun --}}
+                        {{-- KK & tahun --}}
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
                                 <label class="block mb-1 text-sm font-medium text-gray-700">Jumlah KK</label>
@@ -37,7 +37,7 @@
                             </div>
                         </div>
 
-                        {{-- Laki-laki, Perempuan, Total --}}
+                        {{-- L & P dan total --}}
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                             <div>
                                 <label class="block mb-1 text-sm font-medium text-gray-700">Laki-laki</label>
@@ -57,7 +57,7 @@
                             </div>
                         </div>
 
-                        {{-- Latitude & Longitude --}}
+                        {{-- latitude & longitude --}}
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
                                 <label class="block mb-1 text-sm font-medium text-gray-700">
@@ -82,7 +82,7 @@
                             </div>
                         </div>
 
-                        {{-- Tombol --}}
+                        {{-- tombol --}}
                         <div class="flex items-center justify-between pt-2">
                             <a href="{{ route('data.populasi') }}" class="text-sm text-gray-500 hover:underline">
                                 ← Kembali
@@ -93,7 +93,7 @@
                             </button>
                         </div>
 
-                        {{-- Error Message --}}
+                        {{-- error Message --}}
                         @if ($errors->any())
                             <div class="p-3 mt-4 text-sm text-red-700 rounded bg-red-50">
                                 <strong>Terjadi kesalahan:</strong>

@@ -10,7 +10,7 @@
 
             <div class="p-6 bg-white shadow-sm sm:rounded-lg">
 
-                {{-- Form Meninggal --}}
+                {{-- form meninggal --}}
                 <form action="{{ route('events.meninggal.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                     @csrf
 
@@ -18,7 +18,7 @@
                         Identitas Penduduk
                     </h3>
 
-                    {{-- No KK --}}
+                    {{-- no KK --}}
                     <div>
                         <label class="block mb-1 text-sm font-medium">No KK</label>
                         <input type="text" name="no_kk" class="w-full border-gray-300 rounded">
@@ -30,7 +30,7 @@
                         <input type="text" name="nik" class="w-full border-gray-300 rounded">
                     </div>
 
-                    {{-- Nama --}}
+                    {{-- nama --}}
                     <div>
                         <label class="block mb-1 text-sm font-medium">Nama</label>
                         <input type="text" name="nama" class="w-full border-gray-300 rounded">
@@ -40,31 +40,31 @@
                         Detail Peristiwa Meninggal
                     </h3>
 
-                    {{-- Tanggal Peristiwa --}}
+                    {{-- tanggal peristiwa --}}
                     <div>
                         <label class="block mb-1 text-sm font-medium">Tanggal Peristiwa</label>
                         <input type="date" name="tanggal_peristiwa" class="w-full border-gray-300 rounded">
                     </div>
 
-                    {{-- Tanggal Lapor --}}
+                    {{-- tanggal lapor --}}
                     <div>
                         <label class="block mb-1 text-sm font-medium">Tanggal Lapor</label>
                         <input type="date" name="tanggal_lapor" class="w-full border-gray-300 rounded">
                     </div>
 
-                    {{-- Tempat Meninggal --}}
+                    {{-- tempat meninggal --}}
                     <div>
                         <label class="block mb-1 text-sm font-medium">Tempat Meninggal</label>
                         <input type="text" name="tempat_meninggal" class="w-full border-gray-300 rounded">
                     </div>
 
-                    {{-- Jam Kematian --}}
+                    {{-- jam kematian --}}
                     <div>
                         <label class="block mb-1 text-sm font-medium">Jam Kematian</label>
                         <input type="time" name="jam_kematian" class="w-full border-gray-300 rounded">
                     </div>
 
-                    {{-- Penyebab Kematian --}}
+                    {{-- penyebab kematian --}}
                     <div>
                         <label class="block mb-1 text-sm font-medium">Penyebab Kematian</label>
                         <select name="penyebab_kematian" class="w-full border-gray-300 rounded">
@@ -78,7 +78,7 @@
                         </select>
                     </div>
 
-                    {{-- Yang Menyatakan Kematian --}}
+                    {{-- yang menyatakan kematian --}}
                     <div>
                         <label class="block mb-1 text-sm font-medium">Yang Menyatakan Kematian</label>
                         <select name="yang_menyatakan_kematian" class="w-full border-gray-300 rounded">
@@ -90,25 +90,25 @@
                         </select>
                     </div>
 
-                    {{-- Nomor Akta Kematian --}}
+                    {{-- nomor akta kematian --}}
                     <div>
                         <label class="block mb-1 text-sm font-medium">Nomor Akta Kematian</label>
                         <input type="text" name="nomor_akta_kematian" class="w-full border-gray-300 rounded">
                     </div>
 
-                    {{-- File Akta Kematian --}}
+                    {{-- file akta kematian --}}
                     <div>
                         <label class="block mb-1 text-sm font-medium">Upload Akta Kematian (Opsional)</label>
                         <input type="file" name="file_akta_kematian_path" class="w-full border-gray-300 rounded">
                     </div>
 
-                    {{-- Catatan Peristiwa --}}
+                    {{-- catatan peristiwa --}}
                     <div>
                         <label class="block mb-1 text-sm font-medium">Catatan Peristiwa</label>
                         <textarea name="catatan_peristiwa" class="w-full border-gray-300 rounded"></textarea>
                     </div>
 
-                    {{-- Tombol --}}
+                    {{-- tombol --}}
                     <div class="flex justify-end pt-4">
                         <button type="submit" class="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700">
                             Simpan Peristiwa

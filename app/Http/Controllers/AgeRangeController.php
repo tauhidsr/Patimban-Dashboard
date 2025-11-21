@@ -10,20 +10,20 @@ class AgeRangeController extends Controller
     // list data rentang umur
     public function index()
     {
-        // urutkan semua & belum mengisi dibawah
+        // urutkan semua & "Belum Mengisi" di bawah
         $items = AgeRange::orderByRaw("CASE WHEN kategori = 'Belum Mengisi' THEN 2 ELSE 1 END")
-        ->orderBy('id')
-        ->get();
+            ->orderBy('id')
+            ->get();
 
         $summary = [
-            'total_laki' => $items->sum('laki_laki'),
-            'total_perempuan'=> $items->sum('perempuan'),
-            'total_jiwa'=> $items->sum('total'),
+            'total_laki'      => $items->sum('laki_laki'),
+            'total_perempuan' => $items->sum('perempuan'),
+            'total_jiwa'      => $items->sum('total'),
         ];
 
         return view('data.rentang-umur', [
-            'items' => $items,
-            'summary'=> $summary,
+            'items'   => $items,
+            'summary' => $summary,
         ]);
     }
 
@@ -52,7 +52,8 @@ class AgeRangeController extends Controller
 
         AgeRange::create($validated);
 
-        return redirect()->route('rentang-umur.index')
+        return redirect()
+            ->route('rentang-umur.index')
             ->with('success', 'Data rentang umur berhasil ditambahkan.');
     }
 
@@ -87,7 +88,8 @@ class AgeRangeController extends Controller
 
         $item->update($validated);
 
-        return redirect()->route('rentang-umur.index')
+        return redirect()
+            ->route('rentang-umur.index')
             ->with('success', 'Data rentang umur berhasil diperbarui.');
     }
 
@@ -97,7 +99,8 @@ class AgeRangeController extends Controller
         $item = AgeRange::findOrFail($id);
         $item->delete();
 
-        return redirect()->route('rentang-umur.index')
+        return redirect()
+            ->route('rentang-umur.index')
             ->with('success', 'Data rentang umur berhasil dihapus.');
     }
 }

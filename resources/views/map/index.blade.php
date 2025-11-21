@@ -10,7 +10,7 @@
         <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
             <div class="p-0 overflow-hidden bg-white shadow-sm sm:rounded-lg">
 
-                {{-- Info jumlah wilayah --}}
+                {{-- info jumlah wilayah --}}
                 <div class="p-4 bg-white border-b">
                     <p class="text-sm text-gray-700">
                         Menampilkan <strong>{{ count($areas) }}</strong> wilayah dengan koordinat.
@@ -43,7 +43,7 @@
         // bounds untuk auto-fit
         const bounds = [];
 
-        // Base layers (pilihan tampilan peta)
+        // base layers
         const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '© OpenStreetMap'
@@ -114,7 +114,7 @@
             map.fitBounds(bounds, { padding: [40, 40] });
         }
 
-        // Legend (Keterangan)
+        // legend
         const legend = L.control({ position: "bottomright" });
 
         legend.onAdd = function () {
@@ -139,7 +139,7 @@
 
         legend.addTo(map);
 
-        // Tombol Reset Zoom
+        // tombol Reset Zoom
         const resetControl = L.Control.extend({
             options: { position: 'topleft' },
 
@@ -167,7 +167,7 @@
 
         map.addControl(new resetControl());
 
-        // Layer control (pilihan tampilan peta)
+        // layer control (pilihan tampilan peta)
         const baseMaps = {
             'OpenStreetMap': osm,
             'Peta Light': light,

@@ -13,7 +13,7 @@
                     <form action="{{ route('data.populasi.store') }}" method="POST" class="space-y-4">
                         @csrf
 
-                        {{-- Nama wilayah --}}
+                        {{-- nama wilayah --}}
                         <div>
                             <label class="block mb-1 text-sm font-medium text-gray-700">
                                 Nama Wilayah / Dusun / RW / RT
@@ -26,7 +26,7 @@
                                 placeholder="Misal: Dusun Patimban / RW 001 / RT 001">
                         </div>
 
-                        {{-- KK & Tahun --}}
+                        {{-- KK & tahun --}}
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
                                 <label class="block mb-1 text-sm font-medium text-gray-700">
@@ -50,7 +50,7 @@
                             </div>
                         </div>
 
-                        {{-- Laki-laki, Perempuan, Total --}}
+                        {{-- L & P dan total --}}
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                             <div>
                                 <label class="block mb-1 text-sm font-medium text-gray-700">
@@ -87,7 +87,7 @@
                             </div>
                         </div>
 
-                        {{-- Latitude & Longitude --}}
+                        {{-- latitude & longitude --}}
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
                                 <label class="block mb-1 text-sm font-medium text-gray-700">

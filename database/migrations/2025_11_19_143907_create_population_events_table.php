@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('citizen_id')->nullable();
 
             // identitas dasar saat peristiwa
-            $table->string('nik', 20)->nullable();   // ⬅️ TADINYA "nuk", SEKARANG "nik"
+            $table->string('nik', 20)->nullable(); 
             $table->string('no_kk', 20)->nullable();
             $table->string('nama', 150)->nullable();
 

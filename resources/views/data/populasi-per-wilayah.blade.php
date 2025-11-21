@@ -8,14 +8,14 @@
 
     <div class="py-6">
         <div class="mx-auto space-y-6 max-w-7xl sm:px-6 lg:px-8">
-            {{-- Info singkat --}}
+            {{-- info singkat --}}
             <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     Data berikut menampilkan jumlah penduduk per dusun di Desa Patimban tahun 2025.
                 </div>
             </div>
 
-            {{-- Grafik batang --}}
+            {{-- grafik batang --}}
             <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <h3 class="mb-4 text-lg font-semibold">Grafik Jumlah Penduduk per Dusun</h3>
@@ -23,7 +23,7 @@
                 </div>
             </div>
 
-            {{-- Tabel data --}}
+            {{-- tabel data --}}
             <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
 
@@ -31,7 +31,7 @@
                     @if (auth()->user()?->role === 'admin')
                         <div class="flex justify-end mb-4">
                             <a href="{{ route('data.populasi.create') }}"
-                               class="px-4 py-2 text-sm text-white bg-blue-600 rounded hover:bg-blue-700">
+                                class="px-4 py-2 text-sm text-white bg-blue-600 rounded hover:bg-blue-700">
                                 + Tambah Data
                             </a>
                         </div>
@@ -68,16 +68,15 @@
                                             <td class="px-3 py-2">
                                                 <div class="flex items-center gap-2">
                                                     <a href="{{ route('data.populasi.edit', $area->id) }}"
-                                                       class="px-3 py-1 text-xs text-white rounded bg-amber-500 hover:bg-amber-600">
+                                                        class="px-3 py-1 text-xs text-white rounded bg-amber-500 hover:bg-amber-600">
                                                         Edit
                                                     </a>
-                                                    <form action="{{ route('data.populasi.destroy', $area->id) }}"
-                                                          method="POST"
-                                                          onsubmit="return confirm('Yakin hapus data {{ $area->nama_wilayah }}?');">
+                                                    <form action="{{ route('data.populasi.destroy', $area->id) }}" method="POST"
+                                                        onsubmit="return confirm('Yakin hapus data {{ $area->nama_wilayah }}?');">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit"
-                                                                class="px-3 py-1 text-xs text-white bg-red-600 rounded hover:bg-red-700">
+                                                            class="px-3 py-1 text-xs text-white bg-red-600 rounded hover:bg-red-700">
                                                             Hapus
                                                         </button>
                                                     </form>
@@ -102,7 +101,7 @@
         </div>
     </div>
 
-    {{-- Script Chart.js --}}
+    {{-- Chart.js --}}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const ctx = document.getElementById('populationChart');

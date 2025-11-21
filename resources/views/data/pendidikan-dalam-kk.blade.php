@@ -1,16 +1,17 @@
-{{-- resources/views/data/populasi-per-wilayah.blade.php --}}
+{{-- resources/views/data/pendidikan-dalam-kk.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Data Populasi per Wilayah') }}
+        <h2 class="text-xl font-semibold leading-tight text-gray-800">
+            {{ __('Data Pendidikan dalam KK') }}
         </h2>
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+        <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    Halaman Populasi per Wilayah (nanti isi tabel/grafik di sini).
+                    Halaman ini akan menampilkan rekap pendidikan terakhir yang tercatat dalam Kartu Keluarga
+                    (tabel dan grafik akan ditambahkan kemudian, menggunakan data EducationInKK).
                 </div>
             </div>
         </div>

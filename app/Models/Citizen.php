@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\PopulationEvent;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -11,8 +12,9 @@ class Citizen extends Model
     
     protected $table = 'citizens';
 
-    // field yang boleh diisi (create/ update)
-
+    
+    // kolom yang boleh diisi lewat create()/update()   
+    
     protected $fillable = [
         'nik',
         'no_kk',
@@ -26,17 +28,14 @@ class Citizen extends Model
         'status_aktif',
     ];
 
-    // casting otomasis ke tipe data yang tepat
-
+    // casting otomatis
     protected $casts = [
-        'tanggal_lahir'=> 'date',
+        'tanggal_lahir' => 'date',
     ];
 
-    /**
-     * Nanti di sini bisa kita tambahkan relasi ke:
-     * - tabel dusun / rw / rt
-     * - tabel events (riwayat peristiwa)
-     *
-     * Untuk sekarang kita biarkan simpel dulu.
-     */
+    // relasi ke riwayat peristiwa kependudukan
+    public function events()
+    {
+        return $this->hasMany(PopulationEvent::class, 'citizen_id');
+    }
 }
