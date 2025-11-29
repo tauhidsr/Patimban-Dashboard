@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CitizenController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\ProfileController;
@@ -19,6 +20,12 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 
 // semua route yang butuh login
 Route::middleware('auth')->group(function () {
+
+    // =========================
+    // MASTER WARGA (READ ONLY)
+    // =========================
+    Route::get('/citizens', [CitizenController::class, 'index'])
+        ->name('citizens.index');
 
     // =========================
     // PETA (GIS MINI)

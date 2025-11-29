@@ -11,20 +11,28 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('citizens', function (Blueprint $table) {
+        Schema::create('citizen_imports', function (Blueprint $table) {
             $table->id();
 
-            // Identitas dasar
-            $table->string('nik', 16)->unique();
-            $table->string('no_kk', 16)->nullable();
-            $table->string('nama');
-            $table->enum('jenis_kelamin', ['L', 'P'])->nullable(); // L = Laki-laki, P = Perempuan
+            // relasi opsional ke master citizens (nanti saat sudah dipetakan)
+            $table->foreignId('citizen_id')
+                ->nullable()
+                ->constrained('citizens')
+                ->nullOnDelete();
 
-            // Kelahiran
+            // informasi sumber data
+            $table->string('source_file')->nullable();   // nama file excel
+            $table->unsignedInteger('row_index')->nullable(); // baris ke-berapa di Excel
+
+            // kolom utama yang kemungkinan kita pakai
+            $table->string('nik', 16)->nullable();
+            $table->string('no_kk', 16)->nullable();
+            $table->string('nama')->nullable();
+            $table->enum('jenis_kelamin', ['L', 'P'])->nullable();
+
             $table->string('tempat_lahir')->nullable();
             $table->date('tanggal_lahir')->nullable();
 
-            // Demografi & kependudukan
             $table->string('agama')->nullable();
             $table->string('pendidikan_dalam_kk')->nullable();
             $table->string('pendidikan_sedang_ditempuh')->nullable();
@@ -33,23 +41,26 @@ return new class extends Migration
             $table->string('hubungan_dalam_keluarga')->nullable();
             $table->string('kewarganegaraan')->nullable();
 
-            // Wilayah
             $table->string('dusun')->nullable();
             $table->string('rw')->nullable();
             $table->string('rt')->nullable();
 
-            // Alamat & status
             $table->text('alamat')->nullable();
             $table->text('alamat_sekarang')->nullable();
-            $table->string('status_dasar')->nullable(); // contoh: hidup, meninggal, pindah, hilang
+            $table->string('status_dasar')->nullable();
             $table->string('suku')->nullable();
 
-            // Koordinat (opsional untuk GIS)
+            // koordinat (kalau di excel ada lat/lng)
             $table->decimal('latitude', 10, 7)->nullable();
             $table->decimal('longitude', 10, 7)->nullable();
 
-            // Lain-lain
-            $table->text('keterangan')->nullable();
+            // raw row untuk menyimpan data mentah (kolom lain yang tidak kita pakai tetap bisa disimpan)
+            $table->json('raw_row')->nullable();
+
+            // status proses impor
+            $table->enum('import_status', ['pending', 'matched', 'imported', 'skipped', 'error'])
+                ->default('pending');
+            $table->text('error_message')->nullable();
 
             $table->timestamps();
         });
@@ -60,6 +71,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('citizens');
+        Schema::dropIfExists('citizen_imports');
     }
 };

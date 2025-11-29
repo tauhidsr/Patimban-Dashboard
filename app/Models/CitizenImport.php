@@ -2,15 +2,19 @@
 
 namespace App\Models;
 
-use App\Models\PopulationEvent;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Citizen extends Model
+class CitizenImport extends Model
 {
     use HasFactory;
 
+    protected $table = 'citizen_imports';
+
     protected $fillable = [
+        'citizen_id',
+        'source_file',
+        'row_index',
         'nik',
         'no_kk',
         'nama',
@@ -33,6 +37,19 @@ class Citizen extends Model
         'suku',
         'latitude',
         'longitude',
-        'keterangan',
+        'raw_row',
+        'import_status',
+        'error_message',
     ];
+
+    protected $casts = [
+        'raw_row' => 'array',
+        'tanggal_lahir' => 'date',
+    ];
+
+    // relasi opsional ke master citizen
+    public function citizen()
+    {
+        return $this->belongsTo(Citizen::class);
+    }
 }
