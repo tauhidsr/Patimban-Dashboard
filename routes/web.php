@@ -120,6 +120,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/api/citizens/by-nik/{nik}', [CitizenLookupController::class, 'byNik'])
         ->name('api.citizens.byNik');
 
+    Route::get('/api/citizens/search', [CitizenLookupController::class, 'search'])
+        ->name('api.citizens.search');
+
     // =========================
     // DATA LAIN (placeholder)
     // =========================

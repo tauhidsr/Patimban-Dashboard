@@ -62,16 +62,13 @@ class PopulationEventController extends Controller
     {
         // ✅ rapihin input biar ga gagal gara-gara spasi
         $request->merge([
-            'nik'  => $request->filled('nik') ? trim($request->nik) : null,
-            'no_kk'=> $request->filled('no_kk') ? trim($request->no_kk) : null,
-            'nama' => $request->filled('nama') ? trim($request->nama) : null,
+            'nik' => $request->filled('nik') ? trim($request->nik) : null,
         ]);
 
         $validated = $request->validate(
             [
-                'no_kk'             => 'required|string|max:20',
+                // ✅ operator cukup pilih NIK (harus ada di master citizen)
                 'nik'               => 'required|string|max:20|exists:citizens,nik',
-                'nama'              => 'required|string|max:150',
 
                 'tanggal_peristiwa' => 'required|date|before_or_equal:today',
                 'tanggal_lapor'     => 'nullable|date|before_or_equal:today',
@@ -102,13 +99,38 @@ class PopulationEventController extends Controller
             ],
             [
                 // alias field
-                'no_kk'             => 'No KK',
                 'nik'               => 'NIK',
-                'nama'              => 'Nama penduduk',
                 'tanggal_peristiwa' => 'Tanggal peristiwa',
                 'tanggal_lapor'     => 'Tanggal lapor',
             ]
         );
+
+        // ✅ pastikan penduduk ada & masih AKTIF (biar tidak dobel/peristiwa salah)
+        $citizen = Citizen::query()
+            ->where('nik', $validated['nik'])
+            ->select(['id', 'nik', 'nama', 'no_kk', 'status_dasar'])
+            ->first();
+
+        if (!$citizen) {
+            return back()
+                ->withErrors(['nik' => 'NIK tidak ditemukan. Pastikan penduduk sudah terdaftar di data penduduk.'])
+                ->withInput();
+        }
+
+        if (($citizen->status_dasar ?? '') !== 'aktif') {
+            $status = strtoupper((string) $citizen->status_dasar);
+            return back()
+                ->withErrors(['nik' => "Penduduk ini tidak bisa dicatat peristiwa meninggal karena statusnya sudah: {$status}."])
+                ->withInput();
+        }
+
+        // ✅ sinkronkan no_kk & nama dari master (operator tidak bisa manipulasi)
+        $validated['no_kk'] = $citizen->no_kk;
+        $validated['nama']  = $citizen->nama;
+
+
+        // ✅ ambil data master citizen sebagai sumber kebenaran
+        $citizen = Citizen::where('nik', $validated['nik'])->firstOrFail();
 
         if (empty($validated['tanggal_lapor'])) {
             $validated['tanggal_lapor'] = now()->toDateString();
@@ -120,11 +142,15 @@ class PopulationEventController extends Controller
         }
 
         PopulationEvent::create([
-            'citizen_id'               => null,
-            'nik'                      => $validated['nik'],
-            'no_kk'                    => $validated['no_kk'],
-            'nama'                     => $validated['nama'],
+            'citizen_id'               => $citizen->id,
+            'nik'                      => $citizen->nik,
+            'no_kk'                    => $citizen->no_kk,
+            'nama'                     => $citizen->nama,
             'jenis_peristiwa'          => 'meninggal',
+
+            'dusun_id'                 => null,
+            'rw_id'                    => null,
+            'rt_id'                    => null,
 
             'tanggal_peristiwa'        => $validated['tanggal_peristiwa'],
             'tanggal_lapor'            => $validated['tanggal_lapor'],
@@ -162,8 +188,8 @@ class PopulationEventController extends Controller
 
         $validated = $request->validate(
             [
-                'status_verifikasi'   => 'required|in:menunggu,disetujui,ditolak',
-                'catatan_verifikasi'  => 'nullable|string',
+                'status_verifikasi'  => 'required|in:menunggu,disetujui,ditolak',
+                'catatan_verifikasi' => 'nullable|string',
             ],
             [
                 'status_verifikasi.required' => 'Status verifikasi wajib dipilih.',
