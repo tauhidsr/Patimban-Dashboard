@@ -12,7 +12,8 @@
             </div>
 
             {{-- Badge kecil info tahun --}}
-            <span class="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-700 border border-blue-100 rounded-full bg-blue-50">
+            <span
+                class="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-700 border border-blue-100 rounded-full bg-blue-50">
                 Data Tahun 2025
             </span>
         </div>
@@ -145,19 +146,29 @@
                             </p>
                             <ul class="space-y-1">
                                 <li>
-                                    <a href="{{ route('citizens.index') }}" class="inline-flex items-center gap-2 text-blue-600 hover:underline">
+                                    <a href="{{ route('citizens.index') }}"
+                                        class="inline-flex items-center gap-2 text-blue-600 hover:underline">
                                         <span class="inline-block w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                                         Data Penduduk (Master Citizen)
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('data.populasi') }}" class="inline-flex items-center gap-2 text-blue-600 hover:underline">
+                                    <a href="{{ route('citizen-events.index') }}"
+                                        class="inline-flex items-center gap-2 text-blue-600 hover:underline">
+                                        <span class="inline-block w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                        Peristiwa Kependudukan
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('data.populasi') }}"
+                                        class="inline-flex items-center gap-2 text-blue-600 hover:underline">
                                         <span class="inline-block w-1.5 h-1.5 rounded-full bg-sky-500"></span>
                                         Data Populasi per Wilayah
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('rentang-umur.index') }}" class="inline-flex items-center gap-2 text-blue-600 hover:underline">
+                                    <a href="{{ route('rentang-umur.index') }}"
+                                        class="inline-flex items-center gap-2 text-blue-600 hover:underline">
                                         <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                         Data Rentang Umur
                                     </a>
@@ -171,19 +182,22 @@
                             </p>
                             <ul class="space-y-1">
                                 <li>
-                                    <a href="{{ route('data.pendidikan-kk') }}" class="inline-flex items-center gap-2 text-blue-600 hover:underline">
+                                    <a href="{{ route('data.pendidikan-kk') }}"
+                                        class="inline-flex items-center gap-2 text-blue-600 hover:underline">
                                         <span class="inline-block w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
                                         Pendidikan dalam KK
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('data.pendidikan-ditempuh') }}" class="inline-flex items-center gap-2 text-blue-600 hover:underline">
+                                    <a href="{{ route('data.pendidikan-ditempuh') }}"
+                                        class="inline-flex items-center gap-2 text-blue-600 hover:underline">
                                         <span class="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
                                         Pendidikan yang Ditempuh
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('data.pekerjaan') }}" class="inline-flex items-center gap-2 text-blue-600 hover:underline">
+                                    <a href="{{ route('data.pekerjaan') }}"
+                                        class="inline-flex items-center gap-2 text-blue-600 hover:underline">
                                         <span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                                         Pekerjaan
                                     </a>
@@ -197,19 +211,22 @@
                             </p>
                             <ul class="space-y-1">
                                 <li>
-                                    <a href="{{ route('data.agama') }}" class="inline-flex items-center gap-2 text-blue-600 hover:underline">
+                                    <a href="{{ route('data.agama') }}"
+                                        class="inline-flex items-center gap-2 text-blue-600 hover:underline">
                                         <span class="inline-block w-1.5 h-1.5 rounded-full bg-purple-500"></span>
                                         Agama
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('data.jenis-kelamin') }}" class="inline-flex items-center gap-2 text-blue-600 hover:underline">
+                                    <a href="{{ route('data.jenis-kelamin') }}"
+                                        class="inline-flex items-center gap-2 text-blue-600 hover:underline">
                                         <span class="inline-block w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                                         Jenis Kelamin
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('map.index') }}" class="inline-flex items-center gap-2 text-blue-600 hover:underline">
+                                    <a href="{{ route('map.index') }}"
+                                        class="inline-flex items-center gap-2 text-blue-600 hover:underline">
                                         <span class="inline-block w-1.5 h-1.5 rounded-full bg-teal-500"></span>
                                         Peta Sebaran Penduduk (GIS Mini)
                                     </a>

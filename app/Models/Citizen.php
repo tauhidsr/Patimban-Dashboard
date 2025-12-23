@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Models\PopulationEvent;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\CitizenEvent;
+
 
 class Citizen extends Model
 {
@@ -35,4 +37,20 @@ class Citizen extends Model
         'longitude',
         'keterangan',
     ];
+
+    /**
+     * Relasi ke tabel citizen_events (peristiwa kependudukan)
+     */
+    public function citizenEvents()
+    {
+        return $this->hasMany(CitizenEvent::class);
+    }
+
+    /**
+     * Relasi lama ke PopulationEvent (boleh dipakai atau dihapus nanti)
+     */
+    public function events()
+    {
+        return $this->hasMany(PopulationEvent::class, 'citizen_id');
+    }
 }

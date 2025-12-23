@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CitizenEventController;
 use App\Http\Controllers\CitizenController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MapController;
@@ -20,6 +21,12 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 
 // semua route yang butuh login
 Route::middleware('auth')->group(function () {
+
+    // =========================
+    // CITIZENEVENTCONTROLLER
+    // =========================
+    Route::get('/citizen-events', [CitizenEventController::class, 'index'])
+        ->name('citizen-events.index');
 
     // =========================
     // MASTER WARGA (READ ONLY)
