@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CitizenLookupController;
 use App\Http\Controllers\CitizenEventController;
 use App\Http\Controllers\CitizenController;
 use App\Http\Controllers\DashboardController;
@@ -115,6 +116,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/data/rentang-umur/{id}', [AgeRangeController::class, 'destroy'])
         ->middleware('is_admin')
         ->name('rentang-umur.destroy');
+
+    Route::get('/api/citizens/by-nik/{nik}', [CitizenLookupController::class, 'byNik'])
+        ->name('api.citizens.byNik');
 
     // =========================
     // DATA LAIN (placeholder)

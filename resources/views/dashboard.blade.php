@@ -152,13 +152,25 @@
                                         Data Penduduk (Master Citizen)
                                     </a>
                                 </li>
+
+                                {{-- ✅ baru: input peristiwa (pengajuan) --}}
+                                <li>
+                                    <a href="{{ url('/peristiwa') }}"
+                                        class="inline-flex items-center gap-2 text-blue-600 hover:underline">
+                                        <span class="inline-block w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                        Input Peristiwa (Pengajuan)
+                                    </a>
+                                </li>
+
+                                {{-- ✅ rename: citizen-events adalah log/riwayat --}}
                                 <li>
                                     <a href="{{ route('citizen-events.index') }}"
                                         class="inline-flex items-center gap-2 text-blue-600 hover:underline">
                                         <span class="inline-block w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                                        Peristiwa Kependudukan
+                                        Riwayat Perubahan Penduduk (Log)
                                     </a>
                                 </li>
+
                                 <li>
                                     <a href="{{ route('data.populasi') }}"
                                         class="inline-flex items-center gap-2 text-blue-600 hover:underline">
