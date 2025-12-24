@@ -28,6 +28,15 @@ class PopulationEvent extends Model
         'status_verifikasi',
         'catatan_verifikasi',
 
+        // ✅ verifier info (Step A2)
+        'verified_by',
+        'verified_at',
+
+        // ✅ apply/revert tracking (kamu pakai di verify())
+        'previous_status_dasar',
+        'status_applied_at',
+        'status_applied_by',
+
         // MENINGGAL
         'tempat_meninggal',
         'jam_kematian',
@@ -57,6 +66,12 @@ class PopulationEvent extends Model
         'tanggal_lapor'     => 'date',
         'jam_kematian'      => 'datetime:H:i',
         'jam_lahir'         => 'datetime:H:i',
+
+        // ✅ Step A2
+        'verified_at'       => 'datetime',
+
+        // ✅ apply tracking
+        'status_applied_at' => 'datetime',
     ];
 
     // relasi ke master penduduk
@@ -69,5 +84,11 @@ class PopulationEvent extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    // ✅ relasi ke user yang memverifikasi (Step A2)
+    public function verifier()
+    {
+        return $this->belongsTo(User::class, 'verified_by');
     }
 }

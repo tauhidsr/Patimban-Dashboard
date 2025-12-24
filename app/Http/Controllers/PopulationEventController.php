@@ -200,52 +200,149 @@ class PopulationEventController extends Controller
             ]
         );
 
-        $event->status_verifikasi  = $validated['status_verifikasi'];
+        $oldStatus = $event->status_verifikasi;
+        $newStatus = $validated['status_verifikasi'];
+
+        // update status verifikasi event
+        $event->status_verifikasi  = $newStatus;
         $event->catatan_verifikasi = $validated['catatan_verifikasi'] ?? null;
-        $event->save();
 
-        // ✅ hanya kalau disetujui, sinkron ke master citizen + catat log ringkas
-        if ($event->status_verifikasi === 'disetujui') {
-            $citizen = Citizen::where('nik', $event->nik)->first();
-
-            if ($citizen) {
-                // kaitkan event ini ke master citizen (biar rapih relasinya)
-                if (empty($event->citizen_id)) {
-                    $event->citizen_id = $citizen->id;
-                    $event->saveQuietly();
-                }
-
-                // mapping jenis_peristiwa -> status_dasar citizen
-                $map = [
-                    'meninggal' => 'meninggal',
-                    'pindah'    => 'pindah',
-                ];
-
-                if (isset($map[$event->jenis_peristiwa])) {
-                    $citizen->status_dasar = $map[$event->jenis_peristiwa];
-                    $citizen->save();
-                }
-
-                // catat log ringkas ke citizen_events (untuk halaman /citizen-events)
-                CitizenEvent::create([
-                    'citizen_id'        => $citizen->id,
-                    'nik'               => $citizen->nik,
-                    'nama'              => $citizen->nama,
-                    'jenis_peristiwa'   => $event->jenis_peristiwa,
-                    'tanggal_peristiwa' => $event->tanggal_peristiwa,
-                    'keterangan'        => $event->catatan_peristiwa ?? $event->catatan_verifikasi,
-                    'dusun'             => $citizen->dusun,
-                    'rw'                => $citizen->rw,
-                    'rt'                => $citizen->rt,
-                    'status_verifikasi' => 'verified',
-                    'created_by'        => $event->created_by,
-                    'verified_by'       => Auth::id(),
-                ]);
-            }
+        // ✅ Step A3: isi/clear verified_by + verified_at
+        if (in_array($newStatus, ['disetujui', 'ditolak'], true)) {
+            $event->verified_by = Auth::id();
+            $event->verified_at = now();
+        } else {
+            $event->verified_by = null;
+            $event->verified_at = null;
         }
 
+        $event->save();
+
+        // ⛔ kalau status tidak berubah, stop di sini
+        if ($oldStatus === $newStatus) {
+            return redirect()
+                ->route('events.show', $event->id)
+                ->with('success', 'Status verifikasi tidak berubah.');
+        }
+
+        // ambil citizen
+        $citizen = Citizen::where('nik', $event->nik)->first();
+
+        if (!$citizen) {
+            return redirect()
+                ->route('events.show', $event->id)
+                ->with('error', 'Penduduk tidak ditemukan di master citizen.');
+        }
+
+        // pastikan relasi citizen_id tersimpan
+        if (empty($event->citizen_id)) {
+            $event->citizen_id = $citizen->id;
+            $event->saveQuietly();
+        }
+
+        // mapping jenis peristiwa -> status citizen
+        $map = [
+            'meninggal' => 'meninggal',
+            'pindah'    => 'pindah',
+        ];
+
+        /**
+         * =====================================================
+         * A) MENJADI DISETUJUI (APPLY)
+         * =====================================================
+         */
+        if ($newStatus === 'disetujui' && empty($event->status_applied_at)) {
+
+            // simpan status sebelumnya
+            $event->previous_status_dasar = $citizen->status_dasar;
+            $event->status_applied_at     = now();
+            $event->status_applied_by     = Auth::id();
+            $event->saveQuietly();
+
+            // apply status ke citizen
+            if (isset($map[$event->jenis_peristiwa])) {
+                $citizen->status_dasar = $map[$event->jenis_peristiwa];
+                $citizen->save();
+            }
+
+            // log verified
+            CitizenEvent::create([
+                'citizen_id'        => $citizen->id,
+                'nik'               => $citizen->nik,
+                'nama'              => $citizen->nama,
+                'jenis_peristiwa'   => $event->jenis_peristiwa,
+                'tanggal_peristiwa' => $event->tanggal_peristiwa,
+                'keterangan'        => $event->catatan_peristiwa ?? $event->catatan_verifikasi,
+                'dusun'             => $citizen->dusun,
+                'rw'                => $citizen->rw,
+                'rt'                => $citizen->rt,
+                'status_verifikasi' => 'verified',
+                'created_by'        => $event->created_by,
+                'verified_by'       => Auth::id(),
+            ]);
+
+            return redirect()
+                ->route('events.show', $event->id)
+                ->with('success', 'Peristiwa disetujui. Status penduduk berhasil diperbarui.');
+        }
+
+        /**
+         * =====================================================
+         * B) DISETUJUI → DITOLAK / MENUNGGU (REVERT)
+         * =====================================================
+         */
+        if ($oldStatus === 'disetujui' && $newStatus !== 'disetujui' && !empty($event->status_applied_at)) {
+
+            // ⛔ SAFETY: hanya event TERAKHIR yang boleh direvert
+            $lastApplied = PopulationEvent::query()
+                ->where('citizen_id', $citizen->id)
+                ->whereNotNull('status_applied_at')
+                ->orderByDesc('status_applied_at')
+                ->first();
+
+            if ($lastApplied && (int) $lastApplied->id !== (int) $event->id) {
+                return redirect()
+                    ->route('events.show', $event->id)
+                    ->with('error', 'Tidak bisa membatalkan karena sudah ada peristiwa lain yang disetujui setelah ini.');
+            }
+
+            // revert status citizen
+            $citizen->status_dasar = $event->previous_status_dasar ?? 'aktif';
+            $citizen->save();
+
+            // reset penanda apply
+            $event->status_applied_at = null;
+            $event->status_applied_by = null;
+            $event->saveQuietly();
+
+            // log pembatalan (audit trail)
+            CitizenEvent::create([
+                'citizen_id'        => $citizen->id,
+                'nik'               => $citizen->nik,
+                'nama'              => $citizen->nama,
+                'jenis_peristiwa'   => $event->jenis_peristiwa,
+                'tanggal_peristiwa' => $event->tanggal_peristiwa,
+                'keterangan'        => 'Persetujuan peristiwa dibatalkan. Status penduduk dikembalikan ke status sebelumnya.',
+                'dusun'             => $citizen->dusun,
+                'rw'                => $citizen->rw,
+                'rt'                => $citizen->rt,
+                'status_verifikasi' => 'voided',
+                'created_by'        => $event->created_by,
+                'verified_by'       => Auth::id(),
+            ]);
+
+            return redirect()
+                ->route('events.show', $event->id)
+                ->with('success', 'Persetujuan dibatalkan. Status penduduk berhasil dikembalikan.');
+        }
+
+        /**
+         * =====================================================
+         * C) MENUNGGU ↔ DITOLAK (tidak sentuh citizen)
+         * =====================================================
+         */
         return redirect()
             ->route('events.show', $event->id)
-            ->with('success', 'Status verifikasi peristiwa berhasil diperbarui.');
+            ->with('success', 'Status verifikasi berhasil diperbarui.');
     }
 }
