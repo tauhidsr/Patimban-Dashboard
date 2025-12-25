@@ -13,7 +13,12 @@ class PopulationEventController extends Controller
     // Halaman list peristiwa (dengan filter & search)
     public function index(Request $request)
     {
-        $query = PopulationEvent::query()->orderBy('id', 'desc');
+        $query = PopulationEvent::query()
+            ->with([
+                'creator:id,name,role',
+                'verifier:id,name,role',
+            ])
+            ->orderBy('id', 'desc');
 
         $filters = [
             'jenis'  => $request->get('jenis'),
@@ -42,6 +47,7 @@ class PopulationEventController extends Controller
 
         return view('events.index', compact('events', 'filters'));
     }
+
 
     public function create()
     {

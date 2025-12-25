@@ -59,64 +59,59 @@ Route::middleware('auth')->group(function () {
     Route::get('/data/populasi-per-wilayah', [PopulationDataController::class, 'populasiPerWilayah'])
         ->name('data.populasi');
 
-    // create (admin only)
+    // create/store/edit/update/delete (admin only)
     Route::get('/data/populasi-per-wilayah/create', [PopulationDataController::class, 'createPopulasiPerWilayah'])
-        ->middleware('is_admin')
+        ->middleware('role:admin')
         ->name('data.populasi.create');
 
-    // store (admin only)
     Route::post('/data/populasi-per-wilayah', [PopulationDataController::class, 'storePopulasiPerWilayah'])
-        ->middleware('is_admin')
+        ->middleware('role:admin')
         ->name('data.populasi.store');
 
-    // edit (admin only)
     Route::get('/data/populasi-per-wilayah/{id}/edit', [PopulationDataController::class, 'editPopulasiPerWilayah'])
-        ->middleware('is_admin')
+        ->middleware('role:admin')
         ->name('data.populasi.edit');
 
-    // update (admin only)
     Route::put('/data/populasi-per-wilayah/{id}', [PopulationDataController::class, 'updatePopulasiPerWilayah'])
-        ->middleware('is_admin')
+        ->middleware('role:admin')
         ->name('data.populasi.update');
 
-    // delete (admin only)
     Route::delete('/data/populasi-per-wilayah/{id}', [PopulationDataController::class, 'destroyPopulasiPerWilayah'])
-        ->middleware('is_admin')
+        ->middleware('role:admin')
         ->name('data.populasi.destroy');
 
     // =========================
     // DATA RENTANG UMUR
     // =========================
 
-    // list
+    // list (semua user login boleh lihat)
     Route::get('/data/rentang-umur', [AgeRangeController::class, 'index'])
         ->name('rentang-umur.index');
 
-    // create (admin only)
+    // create/store/edit/update/delete (admin only)
     Route::get('/data/rentang-umur/create', [AgeRangeController::class, 'create'])
-        ->middleware('is_admin')
+        ->middleware('role:admin')
         ->name('rentang-umur.create');
 
-    // store (admin only)
     Route::post('/data/rentang-umur', [AgeRangeController::class, 'store'])
-        ->middleware('is_admin')
+        ->middleware('role:admin')
         ->name('rentang-umur.store');
 
-    // edit (admin only)
     Route::get('/data/rentang-umur/{id}/edit', [AgeRangeController::class, 'edit'])
-        ->middleware('is_admin')
+        ->middleware('role:admin')
         ->name('rentang-umur.edit');
 
-    // update (admin only)
     Route::put('/data/rentang-umur/{id}', [AgeRangeController::class, 'update'])
-        ->middleware('is_admin')
+        ->middleware('role:admin')
         ->name('rentang-umur.update');
 
-    // delete (admin only)
     Route::delete('/data/rentang-umur/{id}', [AgeRangeController::class, 'destroy'])
-        ->middleware('is_admin')
+        ->middleware('role:admin')
         ->name('rentang-umur.destroy');
 
+    // =========================
+    // API LOOKUP CITIZEN (semua login boleh)
+    // =========================
     Route::get('/api/citizens/by-nik/{nik}', [CitizenLookupController::class, 'byNik'])
         ->name('api.citizens.byNik');
 
@@ -124,7 +119,7 @@ Route::middleware('auth')->group(function () {
         ->name('api.citizens.search');
 
     // =========================
-    // DATA LAIN (placeholder)
+    // DATA LAIN (placeholder) - sementara view-only
     // =========================
     Route::get('/data/pendidikan-dalam-kk', [PopulationDataController::class, 'pendidikanDalamKK'])
         ->name('data.pendidikan-kk');
@@ -140,37 +135,35 @@ Route::middleware('auth')->group(function () {
     // =========================
     // PERISTIWA KEPENDUDUKAN
     // =========================
-    // modul peristiwa kependudukan
     Route::prefix('peristiwa')->group(function () {
-        // list semua peristiwa
-        Route::get('/', [\App\Http\Controllers\PopulationEventController::class, 'index'])
+
+        // list & detail (viewer/operator/admin boleh lihat)
+        Route::get('/', [PopulationEventController::class, 'index'])
             ->name('events.index');
 
-        // form pilih jenis peristiwa (nanti bisa ada lahir/datang/dll)
-        Route::get('/create', [\App\Http\Controllers\PopulationEventController::class, 'create'])
-            ->name('events.create');
+        Route::get('/{id}', [PopulationEventController::class, 'show'])
+            ->name('events.show');
 
-        // form peristiwa MENINGGAL
-        Route::get('/meninggal/create', [\App\Http\Controllers\PopulationEventController::class, 'createMeninggal'])
-            ->name('events.meninggal.create');
+        // create & store (operator + admin)
+        Route::middleware('role:admin,operator')->group(function () {
+            Route::get('/create', [PopulationEventController::class, 'create'])
+                ->name('events.create');
 
-        // simpan peristiwa MENINGGAL
-        Route::post('/meninggal/store', [\App\Http\Controllers\PopulationEventController::class, 'storeMeninggal'])
-            ->name('events.meninggal.store');
+            Route::get('/meninggal/create', [PopulationEventController::class, 'createMeninggal'])
+                ->name('events.meninggal.create');
 
-        // (opsional) simpan peristiwa baru umum
-        Route::post('/', [\App\Http\Controllers\PopulationEventController::class, 'store'])
-            ->name('events.store');
+            Route::post('/meninggal/store', [PopulationEventController::class, 'storeMeninggal'])
+                ->name('events.meninggal.store');
 
-        // aksi verifikasi (KHUSUS ADMIN)
-        Route::middleware('is_admin')->group(function () {
-            Route::post('/{id}/verifikasi', [\App\Http\Controllers\PopulationEventController::class, 'verify'])
-                ->name('events.verify');
+            Route::post('/', [PopulationEventController::class, 'store'])
+                ->name('events.store');
         });
 
-        // halaman detail peristiwa
-        Route::get('/{id}', [\App\Http\Controllers\PopulationEventController::class, 'show'])
-            ->name('events.show');
+        // verifikasi (admin only)
+        Route::middleware('role:admin')->group(function () {
+            Route::post('/{id}/verifikasi', [PopulationEventController::class, 'verify'])
+                ->name('events.verify');
+        });
     });
 });
 

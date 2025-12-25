@@ -16,6 +16,29 @@
                 </div>
             @endif
 
+            {{-- ✅ ALERT KECIL: MENUNGGU VERIFIKASI ADMIN --}}
+            @php
+                $pendingCount = $events->getCollection()
+                    ->where('status_verifikasi', 'menunggu')
+                    ->count();
+            @endphp
+
+            @if ($pendingCount > 0)
+                <div class="p-3 border border-orange-200 rounded-lg bg-orange-50">
+                    <div class="flex items-start gap-2">
+                        <div class="text-lg">⏳</div>
+                        <div class="text-sm text-orange-800">
+                            Ada <span class="font-semibold">{{ $pendingCount }}</span> peristiwa pada halaman ini yang
+                            <span class="font-semibold">menunggu verifikasi admin</span>.
+                            <span class="text-orange-700">
+                                Operator hanya dapat mencatat peristiwa, keputusan akhir oleh admin desa.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            @endif
+            {{-- END ALERT --}}
+
             <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                 <div class="flex items-center justify-between px-6 py-4 border-b">
                     <h3 class="text-lg font-semibold text-gray-800">
@@ -39,15 +62,11 @@
                             </label>
                             <select name="jenis" class="w-full border-gray-300 rounded">
                                 <option value="">Semua</option>
-                                <option value="lahir" {{ ($filters['jenis'] ?? '') === 'lahir' ? 'selected' : '' }}>Lahir
-                                </option>
-                                <option value="datang" {{ ($filters['jenis'] ?? '') === 'datang' ? 'selected' : '' }}>
-                                    Datang</option>
-                                <option value="pindah" {{ ($filters['jenis'] ?? '') === 'pindah' ? 'selected' : '' }}>
-                                    Pindah</option>
+                                <option value="lahir" {{ ($filters['jenis'] ?? '') === 'lahir' ? 'selected' : '' }}>Lahir</option>
+                                <option value="datang" {{ ($filters['jenis'] ?? '') === 'datang' ? 'selected' : '' }}>Datang</option>
+                                <option value="pindah" {{ ($filters['jenis'] ?? '') === 'pindah' ? 'selected' : '' }}>Pindah</option>
                                 <option value="meninggal" {{ ($filters['jenis'] ?? '') === 'meninggal' ? 'selected' : '' }}>Meninggal</option>
-                                <option value="hilang" {{ ($filters['jenis'] ?? '') === 'hilang' ? 'selected' : '' }}>
-                                    Hilang</option>
+                                <option value="hilang" {{ ($filters['jenis'] ?? '') === 'hilang' ? 'selected' : '' }}>Hilang</option>
                                 <option value="sementara_masuk" {{ ($filters['jenis'] ?? '') === 'sementara_masuk' ? 'selected' : '' }}>Sementara Masuk</option>
                                 <option value="sementara_keluar" {{ ($filters['jenis'] ?? '') === 'sementara_keluar' ? 'selected' : '' }}>Sementara Keluar</option>
                             </select>
@@ -62,8 +81,7 @@
                                 <option value="">Semua</option>
                                 <option value="menunggu" {{ ($filters['status'] ?? '') === 'menunggu' ? 'selected' : '' }}>Menunggu</option>
                                 <option value="disetujui" {{ ($filters['status'] ?? '') === 'disetujui' ? 'selected' : '' }}>Disetujui</option>
-                                <option value="ditolak" {{ ($filters['status'] ?? '') === 'ditolak' ? 'selected' : '' }}>
-                                    Ditolak</option>
+                                <option value="ditolak" {{ ($filters['status'] ?? '') === 'ditolak' ? 'selected' : '' }}>Ditolak</option>
                             </select>
                         </div>
 
@@ -93,8 +111,7 @@
                 <div class="p-0 overflow-x-auto">
                     <table class="min-w-full text-sm text-left">
                         <thead>
-                            <tr
-                                class="text-xs font-semibold tracking-wide text-gray-600 uppercase bg-gray-100 border-b">
+                            <tr class="text-xs font-semibold tracking-wide text-gray-600 uppercase bg-gray-100 border-b">
                                 <th class="px-4 py-2">No</th>
                                 <th class="px-4 py-2">Nama</th>
                                 <th class="px-4 py-2">NIK</th>
@@ -123,48 +140,75 @@
                                     <td class="px-4 py-2 align-top">
                                         {{ ($events->currentPage() - 1) * $events->perPage() + $index + 1 }}
                                     </td>
+
                                     <td class="px-4 py-2 align-top">
                                         {{ $event->nama ?? '-' }}
                                     </td>
+
                                     <td class="px-4 py-2 align-top">
                                         {{ $event->nik ?? '-' }}
                                     </td>
+
                                     <td class="px-4 py-2 align-top">
                                         @php
                                             $labelJenis = $mapJenis[$event->jenis_peristiwa] ?? $event->jenis_peristiwa;
                                         @endphp
                                         <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
-                                                        @if($event->jenis_peristiwa === 'meninggal')
-                                                            bg-red-100 text-red-800
-                                                        @elseif($event->jenis_peristiwa === 'pindah')
-                                                            bg-yellow-100 text-yellow-800
-                                                        @elseif(in_array($event->jenis_peristiwa, ['lahir', 'datang']))
-                                                            bg-green-100 text-green-800
-                                                        @else
-                                                            bg-gray-100 text-gray-800
-                                                        @endif
-                                                    ">
+                                            @if($event->jenis_peristiwa === 'meninggal')
+                                                bg-red-100 text-red-800
+                                            @elseif($event->jenis_peristiwa === 'pindah')
+                                                bg-yellow-100 text-yellow-800
+                                            @elseif(in_array($event->jenis_peristiwa, ['lahir', 'datang']))
+                                                bg-green-100 text-green-800
+                                            @else
+                                                bg-gray-100 text-gray-800
+                                            @endif">
                                             {{ $labelJenis }}
                                         </span>
                                     </td>
+
                                     <td class="px-4 py-2 align-top">
                                         {{ $event->tanggal_peristiwa ? $event->tanggal_peristiwa->format('d-m-Y') : '-' }}
                                     </td>
+
+                                    {{-- ✅ STATUS + INFO VERIFIKASI --}}
                                     <td class="px-4 py-2 align-top">
                                         <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
-                                                        @if($event->status_verifikasi === 'menunggu')
-                                                            bg-orange-100 text-orange-800
-                                                        @elseif($event->status_verifikasi === 'disetujui')
-                                                            bg-green-100 text-green-800
-                                                        @else
-                                                            bg-red-100 text-red-800
-                                                        @endif
-                                                    ">
+                                            @if($event->status_verifikasi === 'menunggu')
+                                                bg-orange-100 text-orange-800
+                                            @elseif($event->status_verifikasi === 'disetujui')
+                                                bg-green-100 text-green-800
+                                            @else
+                                                bg-red-100 text-red-800
+                                            @endif">
                                             {{ ucfirst($event->status_verifikasi) }}
                                         </span>
+
+                                        {{-- ✅ baris kecil “diverifikasi oleh siapa + kapan” --}}
+                                        @if(in_array($event->status_verifikasi, ['disetujui','ditolak']) && $event->verifier && $event->verified_at)
+                                            <div class="mt-1 text-[11px] text-gray-500">
+                                                Diverifikasi oleh <span class="font-medium text-gray-700">{{ $event->verifier->name }}</span>
+                                                • {{ \Carbon\Carbon::parse($event->verified_at)->timezone(config('app.timezone'))->format('d-m-Y H:i') }}
+                                            </div>
+                                        @elseif(in_array($event->status_verifikasi, ['disetujui','ditolak']) && $event->verifier)
+                                            <div class="mt-1 text-[11px] text-gray-500">
+                                                Diverifikasi oleh <span class="font-medium text-gray-700">{{ $event->verifier->name }}</span>
+                                            </div>
+                                        @elseif($event->status_verifikasi === 'menunggu')
+                                            <div class="mt-1 text-[11px] text-gray-500">
+                                                Menunggu verifikasi admin
+                                            </div>
+                                        @endif
                                     </td>
+
+                                    {{-- Dicatat Oleh --}}
                                     <td class="px-4 py-2 align-top">
-                                        {{ $event->created_by ? 'User ID: ' . $event->created_by : '-' }}
+                                        @if($event->creator)
+                                            <div class="text-sm text-gray-800">{{ $event->creator->name }}</div>
+                                            <div class="text-[11px] text-gray-500">({{ $event->creator->role ?? 'user' }})</div>
+                                        @else
+                                            {{ $event->created_by ? 'User ID: ' . $event->created_by : '-' }}
+                                        @endif
                                     </td>
 
                                     {{-- tombol aksi --}}
