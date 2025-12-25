@@ -133,6 +133,26 @@ Route::middleware('auth')->group(function () {
         ->name('data.jenis-kelamin');
 
     // =========================
+    // ADMIN - MANAJEMEN AKUN
+    // =========================
+    Route::middleware('is_admin')->prefix('admin')->group(function () {
+        Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])
+            ->name('admin.users.index');
+
+        Route::get('/users/create', [\App\Http\Controllers\Admin\UserController::class, 'create'])
+            ->name('admin.users.create');
+
+        Route::post('/users', [\App\Http\Controllers\Admin\UserController::class, 'store'])
+            ->name('admin.users.store');
+
+        Route::post('/users/{user}/reset-password', [\App\Http\Controllers\Admin\UserController::class, 'resetPassword'])
+            ->name('admin.users.resetPassword');
+
+        Route::delete('/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])
+            ->name('admin.users.destroy');
+    });
+
+    // =========================
     // PERISTIWA KEPENDUDUKAN
     // =========================
     Route::prefix('peristiwa')->group(function () {
