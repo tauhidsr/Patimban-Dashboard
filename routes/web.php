@@ -24,7 +24,7 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 Route::middleware('auth')->group(function () {
 
     // =========================
-    // CITIZENEVENTCONTROLLER
+    // CITIZEN EVENTS (LOG)
     // =========================
     Route::get('/citizen-events', [CitizenEventController::class, 'index'])
         ->name('citizen-events.index');
@@ -46,8 +46,10 @@ Route::middleware('auth')->group(function () {
     // =========================
     Route::get('/profile', [ProfileController::class, 'edit'])
         ->name('profile.edit');
+
     Route::patch('/profile', [ProfileController::class, 'update'])
         ->name('profile.update');
+
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
 
@@ -123,19 +125,24 @@ Route::middleware('auth')->group(function () {
     // =========================
     Route::get('/data/pendidikan-dalam-kk', [PopulationDataController::class, 'pendidikanDalamKK'])
         ->name('data.pendidikan-kk');
+
     Route::get('/data/pendidikan-ditempuh', [PopulationDataController::class, 'pendidikanDitempuh'])
         ->name('data.pendidikan-ditempuh');
+
     Route::get('/data/pekerjaan', [PopulationDataController::class, 'pekerjaan'])
         ->name('data.pekerjaan');
+
     Route::get('/data/agama', [PopulationDataController::class, 'agama'])
         ->name('data.agama');
+
     Route::get('/data/jenis-kelamin', [PopulationDataController::class, 'jenisKelamin'])
         ->name('data.jenis-kelamin');
 
     // =========================
-    // ADMIN - MANAJEMEN AKUN
+    // ADMIN - MANAJEMEN AKUN (Opsi A)
     // =========================
-    Route::middleware('is_admin')->prefix('admin')->group(function () {
+    // ✅ Konsisten pakai middleware role:admin
+    Route::middleware('role:admin')->prefix('admin')->group(function () {
         Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])
             ->name('admin.users.index');
 
@@ -161,21 +168,26 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [PopulationEventController::class, 'index'])
             ->name('events.index');
 
-        Route::get('/{id}', [\App\Http\Controllers\PopulationEventController::class, 'show'])
+        Route::get('/{id}', [PopulationEventController::class, 'show'])
             ->whereNumber('id')
             ->name('events.show');
 
         // create & store (operator + admin)
         Route::middleware('role:admin,operator')->group(function () {
+
+            // form pilih jenis peristiwa
             Route::get('/create', [PopulationEventController::class, 'create'])
                 ->name('events.create');
 
+            // form peristiwa MENINGGAL
             Route::get('/meninggal/create', [PopulationEventController::class, 'createMeninggal'])
                 ->name('events.meninggal.create');
 
+            // simpan peristiwa MENINGGAL
             Route::post('/meninggal/store', [PopulationEventController::class, 'storeMeninggal'])
                 ->name('events.meninggal.store');
 
+            // (opsional) simpan peristiwa baru umum
             Route::post('/', [PopulationEventController::class, 'store'])
                 ->name('events.store');
         });

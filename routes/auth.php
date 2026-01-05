@@ -12,9 +12,14 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
 
-    // ✅ REGISTER PUBLIK DIMATIKAN (Opsi A: Admin membuat akun operator/viewer)
-    // Route::get('register', ...);
-    // Route::post('register', ...);
+    // ✅ REGISTER DINONAKTIFKAN (Opsi A: Admin membuat akun operator/viewer dari menu admin)
+    Route::get('register', function () {
+        abort(404);
+    })->name('register');
+
+    Route::post('register', function () {
+        abort(404);
+    });
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
@@ -51,7 +56,8 @@ Route::middleware('auth')->group(function () {
 
     Route::post('confirm-password', [ConfirmablePasswordController::class, 'store']);
 
-    Route::put('password', [PasswordController::class, 'update'])->name('password.update');
+    Route::put('password', [PasswordController::class, 'update'])
+        ->name('password.update');
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
