@@ -161,7 +161,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [PopulationEventController::class, 'index'])
             ->name('events.index');
 
-        Route::get('/{id}', [PopulationEventController::class, 'show'])
+        Route::get('/{id}', [\App\Http\Controllers\PopulationEventController::class, 'show'])
+            ->whereNumber('id')
             ->name('events.show');
 
         // create & store (operator + admin)
