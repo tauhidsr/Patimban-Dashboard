@@ -21,7 +21,7 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
     ->name('dashboard');
 
 // semua route yang butuh login
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'force_password_change'])->group(function () {
 
     // =========================
     // CITIZEN EVENTS (LOG)
@@ -141,7 +141,6 @@ Route::middleware('auth')->group(function () {
     // =========================
     // ADMIN - MANAJEMEN AKUN (Opsi A)
     // =========================
-    // ✅ Konsisten pakai middleware role:admin
     Route::middleware('role:admin')->prefix('admin')->group(function () {
         Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])
             ->name('admin.users.index');

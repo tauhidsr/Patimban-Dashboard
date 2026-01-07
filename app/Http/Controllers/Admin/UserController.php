@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -16,9 +17,11 @@ class UserController extends Controller
 
         $users = User::query()
             ->when($q !== '', function ($query) use ($q) {
-                $query->where('name', 'like', "%{$q}%")
-                    ->orWhere('email', 'like', "%{$q}%")
-                    ->orWhere('role', 'like', "%{$q}%");
+                $query->where(function ($sub) use ($q) {
+                    $sub->where('name', 'like', "%{$q}%")
+                        ->orWhere('email', 'like', "%{$q}%")
+                        ->orWhere('role', 'like', "%{$q}%");
+                });
             })
             ->orderBy('id', 'desc')
             ->paginate(20)
@@ -38,23 +41,34 @@ class UserController extends Controller
             [
                 'name'     => 'required|string|max:255',
                 'email'    => 'required|string|lowercase|email|max:255|unique:users,email',
-                'role'     => 'required|in:admin,operator,viewer',
+
+                // ✅ Opsi A: admin hanya boleh buat operator/viewer
+                'role'     => 'required|in:operator,viewer',
+
+                // boleh kosong -> auto generate
                 'password' => 'nullable|string|min:8',
             ],
             [
-                'role.in' => 'Role harus admin / operator / viewer.',
+                'role.in' => 'Role harus operator / viewer.',
                 'email.unique' => 'Email sudah terdaftar.',
+                'password.min' => 'Password minimal 8 karakter.',
             ]
         );
 
-        // kalau admin tidak isi password, kita generate password sementara
+        $role = strtolower($validated['role']);
+
+        // kalau admin tidak isi password, generate password sementara
         $plainPassword = $validated['password'] ?: Str::random(12);
 
         $user = User::create([
             'name'     => $validated['name'],
             'email'    => $validated['email'],
-            'role'     => $validated['role'],
+            'role'     => $role,
             'password' => Hash::make($plainPassword),
+
+            // ✅ wajib ganti password setelah login pertama
+            'must_change_password' => true,
+            'password_changed_at'  => null,
         ]);
 
         return redirect()
@@ -65,10 +79,25 @@ class UserController extends Controller
 
     public function resetPassword(User $user)
     {
+        // ✅ safety: jangan reset password akun admin
+        if (($user->role ?? null) === 'admin') {
+            return back()->with('error', 'Password akun admin tidak boleh di-reset dari menu ini.');
+        }
+
+        // ✅ safety: jangan reset password diri sendiri dari menu ini
+        if (Auth::id() === $user->id) {
+            return back()->with('error', 'Tidak bisa reset password akun sendiri dari menu ini.');
+        }
+
         // reset password random (ditampilkan 1x via session)
         $plainPassword = Str::random(12);
 
         $user->password = Hash::make($plainPassword);
+
+        // ✅ setelah reset, paksa user ganti password lagi
+        $user->must_change_password = true;
+        $user->password_changed_at  = null;
+
         $user->save();
 
         return redirect()
@@ -80,8 +109,13 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         // safety: jangan bisa hapus akun admin (biar desa ga ke-lock)
-        if ($user->role === 'admin') {
+        if (($user->role ?? null) === 'admin') {
             return back()->with('error', 'Akun admin tidak boleh dihapus.');
+        }
+
+        // safety: jangan hapus diri sendiri
+        if (Auth::id() === $user->id) {
+            return back()->with('error', 'Tidak bisa menghapus akun sendiri.');
         }
 
         $user->delete();

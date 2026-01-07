@@ -17,7 +17,7 @@ class EnsureRole
 
         $userRole = Auth::user()->role ?? 'viewer';
 
-        // contoh pemakaian: middleware('role:admin') atau middleware('role:admin,operator')
+        // contoh: middleware('role:admin') atau middleware('role:admin,operator')
         if (!in_array($userRole, $roles, true)) {
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }

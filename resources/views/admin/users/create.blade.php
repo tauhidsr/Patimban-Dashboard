@@ -38,12 +38,16 @@
                     <div>
                         <label class="block mb-1 text-sm font-medium">Role</label>
                         <select name="role" class="w-full border-gray-300 rounded" required>
-                            <option value="operator" {{ old('role')==='operator' ? 'selected' : '' }}>operator</option>
-                            <option value="viewer" {{ old('role')==='viewer' ? 'selected' : '' }}>viewer</option>
-                            <option value="admin" {{ old('role')==='admin' ? 'selected' : '' }}>admin</option>
+                            <option value="operator" {{ old('role', 'operator') === 'operator' ? 'selected' : '' }}>
+                                operator
+                            </option>
+                            <option value="viewer" {{ old('role') === 'viewer' ? 'selected' : '' }}>
+                                viewer
+                            </option>
                         </select>
                         <p class="mt-1 text-xs text-gray-500">
-                            Disarankan: operator / viewer. Admin hanya untuk perangkat desa.
+                            Opsi A: Admin hanya membuat akun <span class="font-semibold">operator/viewer</span> dari menu ini.
+                            Akun admin dibuat oleh perangkat desa (seeder/manual).
                         </p>
                     </div>
 

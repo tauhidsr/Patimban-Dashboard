@@ -13,11 +13,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
 
         $middleware->alias([
-            // alias lama
             'is_admin' => \App\Http\Middleware\IsAdmin::class,
-
-            // alias baru (3 role)
             'role' => \App\Http\Middleware\EnsureRole::class,
+
+            // ✅ baru: paksa ganti password
+            'force_password_change' => \App\Http\Middleware\ForcePasswordChange::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

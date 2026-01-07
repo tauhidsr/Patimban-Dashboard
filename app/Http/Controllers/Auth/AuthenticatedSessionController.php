@@ -28,6 +28,12 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // ✅ Jika user wajib ganti password -> paksa ke halaman profile
+        $user = Auth::user();
+        if ($user && (bool) ($user->must_change_password ?? false)) {
+            return redirect()->route('profile.edit');
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
