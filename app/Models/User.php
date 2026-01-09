@@ -16,7 +16,14 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'dusun',
+        'rw',
+        'rt',
+        'jabatan',
+        'must_change_password',
+        'password_changed_at',
     ];
+
 
     protected $hidden = [
         'password',
@@ -26,23 +33,17 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
+            'email_verified_at'      => 'datetime',
+            'password'               => 'hashed',
+
+            // ✅ casting untuk fitur force change
+            'must_change_password'   => 'boolean',
+            'password_changed_at'    => 'datetime',
         ];
     }
 
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
-    }
-
-    public function isOperator(): bool
-    {
-        return $this->role === 'operator';
-    }
-
-    public function isViewer(): bool
-    {
-        return $this->role === 'viewer';
     }
 }

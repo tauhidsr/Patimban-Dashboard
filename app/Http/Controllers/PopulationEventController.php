@@ -10,15 +10,64 @@ use Illuminate\Support\Facades\Auth;
 
 class PopulationEventController extends Controller
 {
+    /**
+     * Helper: apply scope wilayah untuk operator (dusun/rw/rt)
+     * Dipakai untuk query citizens (subquery)
+     */
+    private function applyCitizenScopeForOperator($citizenQuery, $user)
+    {
+        if (($user->role ?? 'viewer') !== 'operator') {
+            return $citizenQuery; // admin/viewer bebas
+        }
+
+        if (!empty($user->dusun)) {
+            $citizenQuery->where('dusun', $user->dusun);
+        }
+
+        if (!empty($user->rw)) {
+            $citizenQuery->where('rw', $user->rw);
+        }
+
+        if (!empty($user->rt)) {
+            $citizenQuery->where('rt', $user->rt);
+        }
+
+        return $citizenQuery;
+    }
+
     // Halaman list peristiwa (dengan filter & search)
     public function index(Request $request)
     {
+        $user = Auth::user();
+
         $query = PopulationEvent::query()
             ->with([
                 'creator:id,name,role',
                 'verifier:id,name,role',
             ])
             ->orderBy('id', 'desc');
+
+        // =========================
+        // SCOPE WILAYAH (operator)
+        // events discope lewat citizen_id -> citizens table
+        // =========================
+        if (($user->role ?? 'viewer') === 'operator') {
+            $query->whereIn('citizen_id', function ($sub) use ($user) {
+                $sub->select('id')
+                    ->from('citizens');
+
+                // apply scope ke subquery citizens
+                if (!empty($user->dusun)) {
+                    $sub->where('dusun', $user->dusun);
+                }
+                if (!empty($user->rw)) {
+                    $sub->where('rw', $user->rw);
+                }
+                if (!empty($user->rt)) {
+                    $sub->where('rt', $user->rt);
+                }
+            });
+        }
 
         $filters = [
             'jenis'  => $request->get('jenis'),
@@ -48,7 +97,6 @@ class PopulationEventController extends Controller
         return view('events.index', compact('events', 'filters'));
     }
 
-
     public function create()
     {
         return view('events.create');
@@ -66,6 +114,8 @@ class PopulationEventController extends Controller
 
     public function storeMeninggal(Request $request)
     {
+        $user = Auth::user();
+
         // ✅ rapihin input biar ga gagal gara-gara spasi
         $request->merge([
             'nik' => $request->filled('nik') ? trim($request->nik) : null,
@@ -73,7 +123,6 @@ class PopulationEventController extends Controller
 
         $validated = $request->validate(
             [
-                // ✅ operator cukup pilih NIK (harus ada di master citizen)
                 'nik'               => 'required|string|max:20|exists:citizens,nik',
 
                 'tanggal_peristiwa' => 'required|date|before_or_equal:today',
@@ -88,38 +137,34 @@ class PopulationEventController extends Controller
                 'catatan_peristiwa'        => 'nullable|string',
             ],
             [
-                // pesan umum
                 'required' => ':attribute wajib diisi.',
                 'date'     => ':attribute harus berupa tanggal yang valid.',
-
-                // khusus tanggal
                 'tanggal_peristiwa.before_or_equal' => 'Tanggal peristiwa tidak boleh lebih dari hari ini.',
                 'tanggal_lapor.before_or_equal'     => 'Tanggal lapor tidak boleh lebih dari hari ini.',
-
-                // khusus nik
                 'nik.exists' => 'NIK tidak ditemukan. Pastikan penduduk sudah terdaftar di data penduduk.',
-
-                // file
                 'file_akta_kematian_path.mimes' => 'File akta harus berupa JPG, PNG, atau PDF.',
                 'file_akta_kematian_path.max'   => 'Ukuran file akta maksimal 2 MB.',
             ],
             [
-                // alias field
                 'nik'               => 'NIK',
                 'tanggal_peristiwa' => 'Tanggal peristiwa',
                 'tanggal_lapor'     => 'Tanggal lapor',
             ]
         );
 
-        // ✅ pastikan penduduk ada & masih AKTIF (biar tidak dobel/peristiwa salah)
-        $citizen = Citizen::query()
+        // ✅ ambil citizen + scope check untuk operator
+        $citizenQuery = Citizen::query()
             ->where('nik', $validated['nik'])
-            ->select(['id', 'nik', 'nama', 'no_kk', 'status_dasar'])
-            ->first();
+            ->select(['id', 'nik', 'nama', 'no_kk', 'status_dasar', 'dusun', 'rw', 'rt']);
+
+        $citizenQuery = $this->applyCitizenScopeForOperator($citizenQuery, $user);
+
+        $citizen = $citizenQuery->first();
 
         if (!$citizen) {
+            // kalau operator input NIK warga luar wilayah -> akan masuk sini
             return back()
-                ->withErrors(['nik' => 'NIK tidak ditemukan. Pastikan penduduk sudah terdaftar di data penduduk.'])
+                ->withErrors(['nik' => 'NIK tidak bisa dipakai. Pastikan penduduk berada di wilayah akun Anda.'])
                 ->withInput();
         }
 
@@ -130,14 +175,7 @@ class PopulationEventController extends Controller
                 ->withInput();
         }
 
-        // ✅ sinkronkan no_kk & nama dari master (operator tidak bisa manipulasi)
-        $validated['no_kk'] = $citizen->no_kk;
-        $validated['nama']  = $citizen->nama;
-
-
-        // ✅ ambil data master citizen sebagai sumber kebenaran
-        $citizen = Citizen::where('nik', $validated['nik'])->firstOrFail();
-
+        // default tanggal lapor
         if (empty($validated['tanggal_lapor'])) {
             $validated['tanggal_lapor'] = now()->toDateString();
         }
@@ -180,7 +218,26 @@ class PopulationEventController extends Controller
 
     public function show($id)
     {
+        $user = Auth::user();
+
         $event = PopulationEvent::findOrFail($id);
+
+        // =========================
+        // SCOPE CHECK (operator)
+        // =========================
+        if (($user->role ?? 'viewer') === 'operator') {
+            $citizenQuery = Citizen::query()
+                ->where('id', $event->citizen_id)
+                ->select(['id']);
+
+            $citizenQuery = $this->applyCitizenScopeForOperator($citizenQuery, $user);
+
+            $allowed = $citizenQuery->exists();
+
+            if (!$allowed) {
+                abort(403, 'Anda tidak memiliki akses ke peristiwa ini.');
+            }
+        }
 
         return view('events.show', [
             'event' => $event,
@@ -190,6 +247,7 @@ class PopulationEventController extends Controller
     // ✅ VERIFIKASI peristiwa oleh admin + update status citizen
     public function verify(Request $request, $id)
     {
+        // route verify kamu sudah middleware role:admin di web.php, jadi aman
         $event = PopulationEvent::findOrFail($id);
 
         $validated = $request->validate(
@@ -209,11 +267,9 @@ class PopulationEventController extends Controller
         $oldStatus = $event->status_verifikasi;
         $newStatus = $validated['status_verifikasi'];
 
-        // update status verifikasi event
         $event->status_verifikasi  = $newStatus;
         $event->catatan_verifikasi = $validated['catatan_verifikasi'] ?? null;
 
-        // ✅ Step A3: isi/clear verified_by + verified_at
         if (in_array($newStatus, ['disetujui', 'ditolak'], true)) {
             $event->verified_by = Auth::id();
             $event->verified_at = now();
@@ -224,14 +280,12 @@ class PopulationEventController extends Controller
 
         $event->save();
 
-        // ⛔ kalau status tidak berubah, stop di sini
         if ($oldStatus === $newStatus) {
             return redirect()
                 ->route('events.show', $event->id)
                 ->with('success', 'Status verifikasi tidak berubah.');
         }
 
-        // ambil citizen
         $citizen = Citizen::where('nik', $event->nik)->first();
 
         if (!$citizen) {
@@ -240,38 +294,27 @@ class PopulationEventController extends Controller
                 ->with('error', 'Penduduk tidak ditemukan di master citizen.');
         }
 
-        // pastikan relasi citizen_id tersimpan
         if (empty($event->citizen_id)) {
             $event->citizen_id = $citizen->id;
             $event->saveQuietly();
         }
 
-        // mapping jenis peristiwa -> status citizen
         $map = [
             'meninggal' => 'meninggal',
             'pindah'    => 'pindah',
         ];
 
-        /**
-         * =====================================================
-         * A) MENJADI DISETUJUI (APPLY)
-         * =====================================================
-         */
         if ($newStatus === 'disetujui' && empty($event->status_applied_at)) {
-
-            // simpan status sebelumnya
             $event->previous_status_dasar = $citizen->status_dasar;
             $event->status_applied_at     = now();
             $event->status_applied_by     = Auth::id();
             $event->saveQuietly();
 
-            // apply status ke citizen
             if (isset($map[$event->jenis_peristiwa])) {
                 $citizen->status_dasar = $map[$event->jenis_peristiwa];
                 $citizen->save();
             }
 
-            // log verified
             CitizenEvent::create([
                 'citizen_id'        => $citizen->id,
                 'nik'               => $citizen->nik,
@@ -292,14 +335,8 @@ class PopulationEventController extends Controller
                 ->with('success', 'Peristiwa disetujui. Status penduduk berhasil diperbarui.');
         }
 
-        /**
-         * =====================================================
-         * B) DISETUJUI → DITOLAK / MENUNGGU (REVERT)
-         * =====================================================
-         */
         if ($oldStatus === 'disetujui' && $newStatus !== 'disetujui' && !empty($event->status_applied_at)) {
 
-            // ⛔ SAFETY: hanya event TERAKHIR yang boleh direvert
             $lastApplied = PopulationEvent::query()
                 ->where('citizen_id', $citizen->id)
                 ->whereNotNull('status_applied_at')
@@ -312,16 +349,13 @@ class PopulationEventController extends Controller
                     ->with('error', 'Tidak bisa membatalkan karena sudah ada peristiwa lain yang disetujui setelah ini.');
             }
 
-            // revert status citizen
             $citizen->status_dasar = $event->previous_status_dasar ?? 'aktif';
             $citizen->save();
 
-            // reset penanda apply
             $event->status_applied_at = null;
             $event->status_applied_by = null;
             $event->saveQuietly();
 
-            // log pembatalan (audit trail)
             CitizenEvent::create([
                 'citizen_id'        => $citizen->id,
                 'nik'               => $citizen->nik,
@@ -342,11 +376,6 @@ class PopulationEventController extends Controller
                 ->with('success', 'Persetujuan dibatalkan. Status penduduk berhasil dikembalikan.');
         }
 
-        /**
-         * =====================================================
-         * C) MENUNGGU ↔ DITOLAK (tidak sentuh citizen)
-         * =====================================================
-         */
         return redirect()
             ->route('events.show', $event->id)
             ->with('success', 'Status verifikasi berhasil diperbarui.');

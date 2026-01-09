@@ -15,12 +15,12 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// dashboard utama (harus login & verified)
+// dashboard utama (harus login & verified) + ✅ wajib ganti password kalau flag masih true
 Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'force_password_change'])
     ->name('dashboard');
 
-// semua route yang butuh login
+// semua route yang butuh login + ✅ wajib ganti password
 Route::middleware(['auth', 'force_password_change'])->group(function () {
 
     // =========================

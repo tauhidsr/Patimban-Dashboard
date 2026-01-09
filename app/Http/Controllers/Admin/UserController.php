@@ -42,31 +42,65 @@ class UserController extends Controller
                 'name'     => 'required|string|max:255',
                 'email'    => 'required|string|lowercase|email|max:255|unique:users,email',
 
-                // ✅ Opsi A: admin hanya boleh buat operator/viewer
+                // Opsi A: admin hanya boleh buat operator/viewer
                 'role'     => 'required|in:operator,viewer',
 
-                // boleh kosong -> auto generate
                 'password' => 'nullable|string|min:8',
+
+                // scope wilayah (nullable, tapi nanti kita cek kondisional)
+                'dusun'    => 'nullable|string|max:100',
+                'rw'       => 'nullable|string|max:3',
+                'rt'       => 'nullable|string|max:3',
+                'jabatan'  => 'nullable|string|max:50',
             ],
             [
                 'role.in' => 'Role harus operator / viewer.',
                 'email.unique' => 'Email sudah terdaftar.',
-                'password.min' => 'Password minimal 8 karakter.',
             ]
         );
 
-        $role = strtolower($validated['role']);
+        // =========================
+        // Validasi kondisional scope
+        // =========================
+        $role = $validated['role'];
 
-        // kalau admin tidak isi password, generate password sementara
+        // viewer (kades) -> tidak perlu scope wilayah (null semua)
+        if ($role === 'viewer') {
+            $validated['dusun'] = null;
+            $validated['rw'] = null;
+            $validated['rt'] = null;
+        }
+
+        // operator -> minimal harus punya dusun
+        if ($role === 'operator') {
+            if (empty($validated['dusun'])) {
+                return back()
+                    ->withErrors(['dusun' => 'Untuk operator, Dusun wajib diisi.'])
+                    ->withInput();
+            }
+
+            // kalau isi RT, RW wajib ada
+            if (!empty($validated['rt']) && empty($validated['rw'])) {
+                return back()
+                    ->withErrors(['rw' => 'Jika RT diisi, RW wajib diisi.'])
+                    ->withInput();
+            }
+        }
+
         $plainPassword = $validated['password'] ?: Str::random(12);
 
         $user = User::create([
             'name'     => $validated['name'],
             'email'    => $validated['email'],
-            'role'     => $role,
+            'role'     => $validated['role'],
             'password' => Hash::make($plainPassword),
 
-            // ✅ wajib ganti password setelah login pertama
+            'dusun'    => $validated['dusun'] ?? null,
+            'rw'       => $validated['rw'] ?? null,
+            'rt'       => $validated['rt'] ?? null,
+            'jabatan'  => $validated['jabatan'] ?? null,
+
+            // wajib ganti password setelah login pertama
             'must_change_password' => true,
             'password_changed_at'  => null,
         ]);

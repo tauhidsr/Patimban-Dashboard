@@ -37,7 +37,7 @@
 
                     <div>
                         <label class="block mb-1 text-sm font-medium">Role</label>
-                        <select name="role" class="w-full border-gray-300 rounded" required>
+                        <select id="roleSelect" name="role" class="w-full border-gray-300 rounded" required>
                             <option value="operator" {{ old('role', 'operator') === 'operator' ? 'selected' : '' }}>
                                 operator
                             </option>
@@ -49,6 +49,42 @@
                             Opsi A: Admin hanya membuat akun <span class="font-semibold">operator/viewer</span> dari menu ini.
                             Akun admin dibuat oleh perangkat desa (seeder/manual).
                         </p>
+                    </div>
+
+                    {{-- Scope wilayah (untuk operator) --}}
+                    <div id="scopeBox" class="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                        <div class="text-sm font-semibold text-gray-800">Scope Wilayah (untuk Operator)</div>
+                        <p class="mt-1 text-xs text-gray-600">
+                            Isi sesuai jabatan: Kadus (Dusun saja), Ketua RW (Dusun + RW), Ketua RT (Dusun + RW + RT).
+                        </p>
+
+                        <div class="grid grid-cols-1 gap-3 mt-3 sm:grid-cols-3">
+                            <div>
+                                <label class="block mb-1 text-sm font-medium">Dusun <span class="text-red-600">*</span></label>
+                                <input type="text" name="dusun" value="{{ old('dusun') }}"
+                                    class="w-full border-gray-300 rounded" placeholder="contoh: Siwalan">
+                                <p class="mt-1 text-xs text-gray-500">Wajib untuk operator.</p>
+                            </div>
+
+                            <div>
+                                <label class="block mb-1 text-sm font-medium">RW (opsional)</label>
+                                <input type="text" name="rw" value="{{ old('rw') }}"
+                                    class="w-full border-gray-300 rounded" placeholder="contoh: 01">
+                            </div>
+
+                            <div>
+                                <label class="block mb-1 text-sm font-medium">RT (opsional)</label>
+                                <input type="text" name="rt" value="{{ old('rt') }}"
+                                    class="w-full border-gray-300 rounded" placeholder="contoh: 02">
+                                <p class="mt-1 text-xs text-gray-500">Jika RT diisi, RW wajib diisi.</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <label class="block mb-1 text-sm font-medium">Jabatan (opsional)</label>
+                            <input type="text" name="jabatan" value="{{ old('jabatan') }}"
+                                class="w-full border-gray-300 rounded" placeholder="contoh: Kadus / Ketua RW / Ketua RT">
+                        </div>
                     </div>
 
                     <div>
@@ -74,4 +110,20 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const roleSelect = document.getElementById('roleSelect');
+            const scopeBox = document.getElementById('scopeBox');
+
+            function toggleScope() {
+                const role = roleSelect.value;
+                // viewer (kades) tidak perlu scope
+                scopeBox.style.display = (role === 'operator') ? 'block' : 'none';
+            }
+
+            toggleScope();
+            roleSelect.addEventListener('change', toggleScope);
+        });
+    </script>
 </x-app-layout>

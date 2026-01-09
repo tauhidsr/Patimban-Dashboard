@@ -25,13 +25,15 @@ class AuthenticatedSessionController extends Controller
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
-
         $request->session()->regenerate();
 
-        // ✅ Jika user wajib ganti password -> paksa ke halaman profile
-        $user = Auth::user();
-        if ($user && (bool) ($user->must_change_password ?? false)) {
-            return redirect()->route('profile.edit');
+        $user = $request->user();
+
+        // ✅ kalau wajib ganti password, langsung ke profile
+        if (($user->must_change_password ?? false) === true) {
+            return redirect()
+                ->route('profile.edit')
+                ->with('force_password_change', 'Silakan ganti password terlebih dahulu sebelum menggunakan sistem.');
         }
 
         return redirect()->intended(route('dashboard', absolute: false));

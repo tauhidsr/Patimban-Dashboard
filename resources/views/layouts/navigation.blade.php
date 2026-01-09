@@ -11,35 +11,48 @@
                 </div>
 
                 @php
-                    $isAdmin = auth()->check() && (auth()->user()->role ?? null) === 'admin';
+                    $user = auth()->user();
+                    $role = $user->role ?? null;
+
+                    $isAdmin = auth()->check() && $role === 'admin';
+                    $mustChange = auth()->check() && (($user->must_change_password ?? false) === true);
                 @endphp
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
 
-                    <x-nav-link :href="route('citizens.index')" :active="request()->routeIs('citizens.*')">
-                        {{ __('Data Penduduk') }}
-                    </x-nav-link>
-
-                    <x-nav-link :href="route('citizen-events.index')" :active="request()->routeIs('citizen-events.*')">
-                        {{ __('Log Perubahan') }}
-                    </x-nav-link>
-
-                    <x-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')">
-                        {{ __('Peristiwa') }}
-                    </x-nav-link>
-
-                    <x-nav-link :href="route('map.index')" :active="request()->routeIs('map.*')">
-                        {{ __('Peta') }}
-                    </x-nav-link>
-
-                    @if($isAdmin)
-                        <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
-                            {{ __('Manajemen Akun') }}
+                    {{-- ✅ Saat wajib ganti password, kunci visual: hanya tampilkan "Profile" via dropdown --}}
+                    @if(!$mustChange)
+                        <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                            {{ __('Dashboard') }}
                         </x-nav-link>
+
+                        <x-nav-link :href="route('citizens.index')" :active="request()->routeIs('citizens.*')">
+                            {{ __('Data Penduduk') }}
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('citizen-events.index')" :active="request()->routeIs('citizen-events.*')">
+                            {{ __('Log Perubahan') }}
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')">
+                            {{ __('Peristiwa') }}
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('map.index')" :active="request()->routeIs('map.*')">
+                            {{ __('Peta') }}
+                        </x-nav-link>
+
+                        @if($isAdmin)
+                            <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
+                                {{ __('Manajemen Akun') }}
+                            </x-nav-link>
+                        @endif
+                    @else
+                        {{-- Badge kecil biar user ngerti kenapa menu hilang --}}
+                        <span class="inline-flex items-center self-center px-3 py-1 text-xs font-semibold text-red-800 bg-red-100 border border-red-200 rounded-full">
+                            Wajib ganti password
+                        </span>
                     @endif
                 </div>
             </div>
@@ -64,6 +77,12 @@
                             Role: <span class="font-semibold text-gray-700">{{ Auth::user()->role ?? '-' }}</span>
                         </div>
 
+                        @if(($user->must_change_password ?? false) === true)
+                            <div class="px-4 pb-2 text-xs text-red-600">
+                                Wajib ganti password sebelum akses menu lain.
+                            </div>
+                        @endif
+
                         <x-dropdown-link :href="route('profile.edit')">
                             {{ __('Profile') }}
                         </x-dropdown-link>
@@ -71,7 +90,6 @@
                         <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-
                             <x-dropdown-link :href="route('logout')"
                                     onclick="event.preventDefault();
                                                 this.closest('form').submit();">
@@ -97,30 +115,37 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
 
-            <x-responsive-nav-link :href="route('citizens.index')" :active="request()->routeIs('citizens.*')">
-                {{ __('Data Penduduk') }}
-            </x-responsive-nav-link>
-
-            <x-responsive-nav-link :href="route('citizen-events.index')" :active="request()->routeIs('citizen-events.*')">
-                {{ __('Log Perubahan') }}
-            </x-responsive-nav-link>
-
-            <x-responsive-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')">
-                {{ __('Peristiwa') }}
-            </x-responsive-nav-link>
-
-            <x-responsive-nav-link :href="route('map.index')" :active="request()->routeIs('map.*')">
-                {{ __('Peta') }}
-            </x-responsive-nav-link>
-
-            @if($isAdmin)
-                <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
-                    {{ __('Manajemen Akun') }}
+            @if(!$mustChange)
+                <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                    {{ __('Dashboard') }}
                 </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('citizens.index')" :active="request()->routeIs('citizens.*')">
+                    {{ __('Data Penduduk') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('citizen-events.index')" :active="request()->routeIs('citizen-events.*')">
+                    {{ __('Log Perubahan') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')">
+                    {{ __('Peristiwa') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('map.index')" :active="request()->routeIs('map.*')">
+                    {{ __('Peta') }}
+                </x-responsive-nav-link>
+
+                @if($isAdmin)
+                    <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
+                        {{ __('Manajemen Akun') }}
+                    </x-responsive-nav-link>
+                @endif
+            @else
+                <div class="px-4 py-2 text-xs font-semibold text-red-800 bg-red-100 border border-red-200 rounded-lg">
+                    Wajib ganti password sebelum akses menu lain.
+                </div>
             @endif
         </div>
 
@@ -139,10 +164,8 @@
                     {{ __('Profile') }}
                 </x-responsive-nav-link>
 
-                <!-- Authentication -->
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-
                     <x-responsive-nav-link :href="route('logout')"
                             onclick="event.preventDefault();
                                         this.closest('form').submit();">

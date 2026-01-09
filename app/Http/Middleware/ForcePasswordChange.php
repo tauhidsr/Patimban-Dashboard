@@ -30,8 +30,8 @@ class ForcePasswordChange
 
             $currentRouteName = $request->route()?->getName();
 
-            // kalau route name kosong, biarkan lanjut (hindari edge-case)
-            if ($currentRouteName && !in_array($currentRouteName, $allowedRouteNames, true)) {
+            // kalau bukan route yang diizinkan, paksa ke profile
+            if (!empty($currentRouteName) && !in_array($currentRouteName, $allowedRouteNames, true)) {
                 return redirect()
                     ->route('profile.edit')
                     ->with('force_password_change', 'Silakan ganti password terlebih dahulu sebelum menggunakan sistem.');
