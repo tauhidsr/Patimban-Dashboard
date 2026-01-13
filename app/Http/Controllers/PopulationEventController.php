@@ -11,62 +11,59 @@ use Illuminate\Support\Facades\Auth;
 class PopulationEventController extends Controller
 {
     /**
-     * Helper: apply scope wilayah untuk operator (dusun/rw/rt)
-     * Dipakai untuk query citizens (subquery)
+     * Helper: scope wilayah untuk operator (dusun/rw/rt) via join citizens.
+     * Admin/viewer bebas.
      */
-    private function applyCitizenScopeForOperator($citizenQuery, $user)
+    private function applyCitizenJoinScopeForOperator($query, $user)
     {
         if (($user->role ?? 'viewer') !== 'operator') {
-            return $citizenQuery; // admin/viewer bebas
+            return $query;
         }
 
-        if (!empty($user->dusun)) {
-            $citizenQuery->where('dusun', $user->dusun);
+        // ✅ safety: operator minimal harus punya dusun
+        if (empty($user->dusun)) {
+            abort(403, 'Akun operator belum memiliki scope wilayah (dusun). Hubungi admin.');
         }
+
+        $query->where('citizens.dusun', $user->dusun);
 
         if (!empty($user->rw)) {
-            $citizenQuery->where('rw', $user->rw);
+            $query->where('citizens.rw', $user->rw);
         }
-
         if (!empty($user->rt)) {
-            $citizenQuery->where('rt', $user->rt);
+            $query->where('citizens.rt', $user->rt);
         }
 
-        return $citizenQuery;
+        return $query;
     }
 
-    // Halaman list peristiwa (dengan filter & search)
+    /**
+     * ✅ B10: hard-guard role di controller (anti bypass)
+     */
+    private function requireRole($user, array $allowedRoles, string $message = 'Anda tidak memiliki akses.')
+    {
+        $role = $user->role ?? 'viewer';
+        if (!in_array($role, $allowedRoles, true)) {
+            abort(403, $message);
+        }
+    }
+
     public function index(Request $request)
     {
-        $user = Auth::user();
+        $user = $request->user();
 
         $query = PopulationEvent::query()
             ->with([
                 'creator:id,name,role',
                 'verifier:id,name,role',
             ])
-            ->orderBy('id', 'desc');
+            ->orderByDesc('id');
 
-        // =========================
-        // SCOPE WILAYAH (operator)
-        // events discope lewat citizen_id -> citizens table
-        // =========================
+        // ✅ Scope wilayah operator: join citizens
         if (($user->role ?? 'viewer') === 'operator') {
-            $query->whereIn('citizen_id', function ($sub) use ($user) {
-                $sub->select('id')
-                    ->from('citizens');
-
-                // apply scope ke subquery citizens
-                if (!empty($user->dusun)) {
-                    $sub->where('dusun', $user->dusun);
-                }
-                if (!empty($user->rw)) {
-                    $sub->where('rw', $user->rw);
-                }
-                if (!empty($user->rt)) {
-                    $sub->where('rt', $user->rt);
-                }
-            });
+            $query->join('citizens', 'citizens.id', '=', 'population_events.citizen_id');
+            $this->applyCitizenJoinScopeForOperator($query, $user);
+            $query->select('population_events.*');
         }
 
         $filters = [
@@ -99,24 +96,36 @@ class PopulationEventController extends Controller
 
     public function create()
     {
+        // ✅ B10: admin/operator only
+        $this->requireRole(Auth::user(), ['admin', 'operator'], 'Hanya admin/operator yang dapat menambah peristiwa.');
+
         return view('events.create');
     }
 
     public function store(Request $request)
     {
+        // ✅ B10: admin/operator only (walau sementara kosong)
+        $this->requireRole($request->user(), ['admin', 'operator'], 'Hanya admin/operator yang dapat menyimpan peristiwa.');
+
         // sementara kosong -> nanti diisi untuk jenis lain
+        abort(404);
     }
 
     public function createMeninggal()
     {
+        // ✅ B10: admin/operator only
+        $this->requireRole(Auth::user(), ['admin', 'operator'], 'Hanya admin/operator yang dapat mencatat peristiwa.');
+
         return view('events.form-meninggal');
     }
 
     public function storeMeninggal(Request $request)
     {
-        $user = Auth::user();
+        // ✅ B10: admin/operator only
+        $this->requireRole($request->user(), ['admin', 'operator'], 'Hanya admin/operator yang dapat menyimpan peristiwa.');
 
-        // ✅ rapihin input biar ga gagal gara-gara spasi
+        $user = $request->user();
+
         $request->merge([
             'nik' => $request->filled('nik') ? trim($request->nik) : null,
         ]);
@@ -124,7 +133,6 @@ class PopulationEventController extends Controller
         $validated = $request->validate(
             [
                 'nik'               => 'required|string|max:20|exists:citizens,nik',
-
                 'tanggal_peristiwa' => 'required|date|before_or_equal:today',
                 'tanggal_lapor'     => 'nullable|date|before_or_equal:today',
 
@@ -152,19 +160,25 @@ class PopulationEventController extends Controller
             ]
         );
 
-        // ✅ ambil citizen + scope check untuk operator
+        // ✅ ambil citizen + scope operator (nutup bypass submit NIK luar wilayah)
         $citizenQuery = Citizen::query()
-            ->where('nik', $validated['nik'])
-            ->select(['id', 'nik', 'nama', 'no_kk', 'status_dasar', 'dusun', 'rw', 'rt']);
+            ->select(['id', 'nik', 'nama', 'no_kk', 'status_dasar', 'dusun', 'rw', 'rt'])
+            ->where('nik', $validated['nik']);
 
-        $citizenQuery = $this->applyCitizenScopeForOperator($citizenQuery, $user);
+        if (($user->role ?? 'viewer') === 'operator') {
+            if (empty($user->dusun)) {
+                abort(403, 'Akun operator belum memiliki scope wilayah (dusun). Hubungi admin.');
+            }
+            $citizenQuery->where('dusun', $user->dusun);
+            if (!empty($user->rw)) $citizenQuery->where('rw', $user->rw);
+            if (!empty($user->rt)) $citizenQuery->where('rt', $user->rt);
+        }
 
         $citizen = $citizenQuery->first();
 
         if (!$citizen) {
-            // kalau operator input NIK warga luar wilayah -> akan masuk sini
             return back()
-                ->withErrors(['nik' => 'NIK tidak bisa dipakai. Pastikan penduduk berada di wilayah akun Anda.'])
+                ->withErrors(['nik' => 'NIK tidak ditemukan / tidak termasuk wilayah Anda.'])
                 ->withInput();
         }
 
@@ -175,7 +189,6 @@ class PopulationEventController extends Controller
                 ->withInput();
         }
 
-        // default tanggal lapor
         if (empty($validated['tanggal_lapor'])) {
             $validated['tanggal_lapor'] = now()->toDateString();
         }
@@ -222,32 +235,33 @@ class PopulationEventController extends Controller
 
         $event = PopulationEvent::findOrFail($id);
 
-        // =========================
-        // SCOPE CHECK (operator)
-        // =========================
+        // ✅ anti bypass URL detail event untuk operator
         if (($user->role ?? 'viewer') === 'operator') {
+            if (empty($user->dusun)) {
+                abort(403, 'Akun operator belum memiliki scope wilayah (dusun). Hubungi admin.');
+            }
+
             $citizenQuery = Citizen::query()
                 ->where('id', $event->citizen_id)
-                ->select(['id']);
+                ->where('dusun', $user->dusun);
 
-            $citizenQuery = $this->applyCitizenScopeForOperator($citizenQuery, $user);
+            if (!empty($user->rw)) $citizenQuery->where('rw', $user->rw);
+            if (!empty($user->rt)) $citizenQuery->where('rt', $user->rt);
 
-            $allowed = $citizenQuery->exists();
-
-            if (!$allowed) {
-                abort(403, 'Anda tidak memiliki akses ke peristiwa ini.');
+            if (!$citizenQuery->exists()) {
+                abort(403, 'Anda tidak memiliki akses ke peristiwa di luar wilayah Anda.');
             }
         }
 
-        return view('events.show', [
-            'event' => $event,
-        ]);
+        return view('events.show', ['event' => $event]);
     }
 
-    // ✅ VERIFIKASI peristiwa oleh admin + update status citizen
     public function verify(Request $request, $id)
     {
-        // route verify kamu sudah middleware role:admin di web.php, jadi aman
+        // ✅ B10: admin only
+        $this->requireRole($request->user(), ['admin'], 'Hanya admin yang dapat melakukan verifikasi.');
+
+        // (bagian verify kamu sudah oke — biarin tetap seperti yang sekarang)
         $event = PopulationEvent::findOrFail($id);
 
         $validated = $request->validate(
@@ -305,6 +319,7 @@ class PopulationEventController extends Controller
         ];
 
         if ($newStatus === 'disetujui' && empty($event->status_applied_at)) {
+
             $event->previous_status_dasar = $citizen->status_dasar;
             $event->status_applied_at     = now();
             $event->status_applied_by     = Auth::id();

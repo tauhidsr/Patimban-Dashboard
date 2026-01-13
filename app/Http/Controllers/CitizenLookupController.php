@@ -3,57 +3,45 @@
 namespace App\Http\Controllers;
 
 use App\Models\Citizen;
+use App\Traits\AppliesCitizenScope;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class CitizenLookupController extends Controller
 {
-    /**
-     * Helper: scope wilayah untuk operator (dusun/rw/rt).
-     * Admin/viewer bebas.
-     */
-    private function applyCitizenScopeForOperator($query, $user)
-    {
-        if (($user->role ?? 'viewer') !== 'operator') {
-            return $query;
-        }
-
-        if (!empty($user->dusun)) {
-            $query->where('dusun', $user->dusun);
-        }
-
-        if (!empty($user->rw)) {
-            $query->where('rw', $user->rw);
-        }
-
-        if (!empty($user->rt)) {
-            $query->where('rt', $user->rt);
-        }
-
-        return $query;
-    }
+    use AppliesCitizenScope;
 
     public function byNik(string $nik)
     {
-        $nik = trim($nik);
-        $user = Auth::user();
+        $nik  = trim($nik);
+        $user = request()->user();
+
+        // ✅ operator tapi belum punya dusun → 403 (jelas)
+        if (($user->role ?? 'viewer') === 'operator' && empty($user->dusun)) {
+            return response()->json([
+                'found' => false,
+                'code' => 'SCOPE_NOT_SET',
+                'message' => 'Akun operator belum memiliki scope wilayah (dusun). Hubungi admin.',
+            ], 403);
+        }
 
         $query = Citizen::query()
             ->select(['id', 'nik', 'no_kk', 'nama', 'dusun', 'rw', 'rt', 'status_dasar'])
             ->where('nik', $nik);
 
-        // ✅ Scope wilayah (operator)
-        if ($user) {
-            $this->applyCitizenScopeForOperator($query, $user);
-        }
+        $this->scopeCitizenForOperator($query, $user, '', true);
 
         $citizen = $query->first();
 
         if (!$citizen) {
-            // kalau operator lookup NIK luar wilayah, hasilnya "tidak ditemukan" (aman)
+            $msg = 'NIK tidak ditemukan.';
+            if (($user->role ?? 'viewer') === 'operator') {
+                $msg = 'NIK tidak ditemukan atau tidak termasuk wilayah Anda.';
+            }
+
             return response()->json([
                 'found' => false,
-                'message' => 'NIK tidak ditemukan.',
+                'code' => 'NOT_FOUND',
+                'message' => $msg,
             ], 404);
         }
 
@@ -65,10 +53,15 @@ class CitizenLookupController extends Controller
 
     public function search(Request $request)
     {
-        $q = trim((string) $request->query('q', ''));
-        $user = $request->user() ?? Auth::user();
+        $q    = trim((string) $request->query('q', ''));
+        $user = $request->user();
 
         if (mb_strlen($q) < 3) {
+            return response()->json(['results' => []]);
+        }
+
+        // ✅ tomselect: operator scope kosong → hasil kosong (bukan 403)
+        if (($user->role ?? 'viewer') === 'operator' && empty($user->dusun)) {
             return response()->json(['results' => []]);
         }
 
@@ -80,10 +73,8 @@ class CitizenLookupController extends Controller
                     ->orWhere('no_kk', 'like', "%{$q}%");
             });
 
-        // ✅ Scope wilayah (operator)
-        if ($user) {
-            $this->applyCitizenScopeForOperator($query, $user);
-        }
+        // ✅ scope operator (tanpa abort; kalau pun dusun kosong, sudah di-handle di atas)
+        $this->scopeCitizenForOperator($query, $user, '', false);
 
         $citizens = $query
             ->orderBy('nama')
@@ -97,8 +88,6 @@ class CitizenLookupController extends Controller
             ];
         });
 
-        return response()->json([
-            'results' => $results,
-        ]);
+        return response()->json(['results' => $results]);
     }
 }

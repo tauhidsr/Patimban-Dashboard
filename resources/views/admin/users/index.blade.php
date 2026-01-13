@@ -90,6 +90,8 @@
                                 <th class="px-4 py-2">Nama</th>
                                 <th class="px-4 py-2">Email</th>
                                 <th class="px-4 py-2">Role</th>
+                                <th class="px-4 py-2">Wilayah</th>
+                                <th class="px-4 py-2">Jabatan</th>
                                 <th class="px-4 py-2">Dibuat</th>
                                 <th class="px-4 py-2">Aksi</th>
                             </tr>
@@ -102,10 +104,18 @@
 
                                     // ✅ disable tombol kalau admin ATAU akun sendiri
                                     $disableActions = $isRowAdmin || $isSelf;
+
+                                    // ✅ tampilkan wilayah rapi
+                                    $wilayah = trim(
+                                        ($u->dusun ?? '') .
+                                        (!empty($u->rw) ? " / RW {$u->rw}" : '') .
+                                        (!empty($u->rt) ? " / RT {$u->rt}" : '')
+                                    );
                                 @endphp
 
                                 <tr class="border-b hover:bg-gray-50">
                                     <td class="px-4 py-2">{{ $u->id }}</td>
+
                                     <td class="px-4 py-2">
                                         {{ $u->name }}
                                         @if($isSelf)
@@ -114,7 +124,9 @@
                                             </span>
                                         @endif
                                     </td>
+
                                     <td class="px-4 py-2">{{ $u->email }}</td>
+
                                     <td class="px-4 py-2">
                                         <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
                                             @if(($u->role ?? '') === 'admin') bg-purple-100 text-purple-800
@@ -124,9 +136,19 @@
                                             {{ $u->role ?? '-' }}
                                         </span>
                                     </td>
+
+                                    <td class="px-4 py-2 text-xs text-gray-700">
+                                        {{ $wilayah !== '' ? $wilayah : '-' }}
+                                    </td>
+
+                                    <td class="px-4 py-2 text-xs text-gray-700">
+                                        {{ $u->jabatan ?? '-' }}
+                                    </td>
+
                                     <td class="px-4 py-2 text-xs text-gray-600">
                                         {{ $u->created_at?->format('d-m-Y H:i') ?? '-' }}
                                     </td>
+
                                     <td class="px-4 py-2">
                                         <div class="flex flex-wrap gap-2">
                                             <form method="POST"
@@ -166,7 +188,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="px-4 py-6 text-sm text-center text-gray-500">
+                                    <td colspan="8" class="px-4 py-6 text-sm text-center text-gray-500">
                                         Belum ada akun.
                                     </td>
                                 </tr>

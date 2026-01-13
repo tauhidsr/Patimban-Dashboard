@@ -177,8 +177,12 @@
                         @endif
                     </div>
 
-                    {{-- form ubah verifikasi (admin bisa edit, non-admin read-only) --}}
-                    @auth
+                    @php
+                        $isAdmin = auth()->check() && (auth()->user()->role === 'admin');
+                    @endphp
+
+                    {{-- ✅ Form verifikasi: hanya admin --}}
+                    @if($isAdmin)
                         <div class="pt-4 mt-2 border-t">
                             <p class="mb-2 text-xs font-semibold text-gray-500 uppercase">Ubah Status Verifikasi</p>
 
@@ -193,10 +197,6 @@
                                 </div>
                             @endif
 
-                            @php
-                                $isAdmin = auth()->user()->role === 'admin';
-                            @endphp
-
                             <form id="form-verifikasi" action="{{ route('events.verify', $event->id) }}" method="POST"
                                 class="space-y-3 sm:flex sm:items-end sm:space-y-0 sm:space-x-3">
                                 @csrf
@@ -206,9 +206,7 @@
                                         Status
                                     </label>
 
-                                    <select name="status_verifikasi"
-                                        class="text-sm border-gray-300 rounded {{ $isAdmin ? '' : 'bg-gray-50' }}"
-                                        {{ $isAdmin ? '' : 'disabled' }}>
+                                    <select name="status_verifikasi" class="text-sm border-gray-300 rounded">
                                         <option value="menunggu" {{ $event->status_verifikasi === 'menunggu' ? 'selected' : '' }}>
                                             Menunggu
                                         </option>
@@ -219,12 +217,6 @@
                                             Ditolak
                                         </option>
                                     </select>
-
-                                    @if(!$isAdmin)
-                                        <p class="mt-1 text-[11px] text-gray-500">
-                                            Hanya admin yang dapat mengubah verifikasi.
-                                        </p>
-                                    @endif
                                 </div>
 
                                 <div class="flex-1">
@@ -234,22 +226,29 @@
 
                                     <input type="text" name="catatan_verifikasi"
                                         value="{{ old('catatan_verifikasi', $event->catatan_verifikasi) }}"
-                                        class="w-full text-sm border-gray-300 rounded {{ $isAdmin ? '' : 'bg-gray-50' }}"
-                                        placeholder="misal: data sudah sesuai dengan surat keterangan"
-                                        {{ $isAdmin ? '' : 'disabled' }}>
+                                        class="w-full text-sm border-gray-300 rounded"
+                                        placeholder="misal: data sudah sesuai dengan surat keterangan">
                                 </div>
 
-                                @if($isAdmin)
-                                    <div>
-                                        <button type="submit"
-                                            class="px-4 py-2 text-xs font-semibold text-white bg-green-600 rounded hover:bg-green-700">
-                                            Simpan Verifikasi
-                                        </button>
-                                    </div>
-                                @endif
+                                <div>
+                                    <button type="submit"
+                                        class="px-4 py-2 text-xs font-semibold text-white bg-green-600 rounded hover:bg-green-700">
+                                        Simpan Verifikasi
+                                    </button>
+                                </div>
                             </form>
                         </div>
-                    @endauth
+                    @else
+                        {{-- non-admin hanya info --}}
+                        <div class="pt-4 mt-2 border-t">
+                            <div class="p-3 text-sm text-gray-700 border border-gray-200 rounded-lg bg-gray-50">
+                                <div class="font-semibold text-gray-800">Info</div>
+                                <div class="mt-1 text-xs text-gray-600">
+                                    Hanya admin yang dapat mengubah status verifikasi peristiwa.
+                                </div>
+                            </div>
+                        </div>
+                    @endif
 
                     {{-- ✅ catatan peristiwa --}}
                     <div class="pt-4 mt-2 border-t">
@@ -271,8 +270,8 @@
         </div>
     </div>
 
-    {{-- ✅ Konfirmasi JS saat klik “Simpan Verifikasi” (aktif kalau status saat ini disetujui) --}}
-    @if ($event->status_verifikasi === 'disetujui')
+    {{-- ✅ Konfirmasi JS saat klik “Simpan Verifikasi” (hanya admin & jika status saat ini disetujui) --}}
+    @if ($isAdmin && $event->status_verifikasi === 'disetujui')
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 const form = document.getElementById('form-verifikasi');

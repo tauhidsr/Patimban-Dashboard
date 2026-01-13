@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Citizen;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class CitizenController extends Controller
 {
@@ -15,10 +14,8 @@ class CitizenController extends Controller
      */
     public function index(Request $request)
     {
-        $user = Auth::user();
-
-        // opsional: simple search
-        $search = $request->input('q');
+        $user = $request->user();
+        $search = trim((string) $request->query('q', ''));
 
         $query = Citizen::query();
 
@@ -26,14 +23,16 @@ class CitizenController extends Controller
         // SCOPE WILAYAH (operator)
         // =========================
         if (($user->role ?? 'viewer') === 'operator') {
-            if (!empty($user->dusun)) {
-                $query->where('dusun', $user->dusun);
+            // ✅ safety: operator WAJIB punya minimal dusun
+            if (empty($user->dusun)) {
+                abort(403, 'Akun operator belum memiliki scope wilayah (dusun). Hubungi admin.');
             }
+
+            $query->where('dusun', $user->dusun);
 
             if (!empty($user->rw)) {
                 $query->where('rw', $user->rw);
             }
-
             if (!empty($user->rt)) {
                 $query->where('rt', $user->rt);
             }
@@ -42,11 +41,14 @@ class CitizenController extends Controller
         // =========================
         // SEARCH
         // =========================
-        if ($search) {
+        if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('nik', 'like', "%{$search}%")
                     ->orWhere('nama', 'like', "%{$search}%")
-                    ->orWhere('dusun', 'like', "%{$search}%");
+                    ->orWhere('no_kk', 'like', "%{$search}%")
+                    ->orWhere('dusun', 'like', "%{$search}%")
+                    ->orWhere('rw', 'like', "%{$search}%")
+                    ->orWhere('rt', 'like', "%{$search}%");
             });
         }
 

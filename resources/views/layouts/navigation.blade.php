@@ -14,14 +14,23 @@
                     $user = auth()->user();
                     $role = $user->role ?? null;
 
-                    $isAdmin = auth()->check() && $role === 'admin';
+                    $isAdmin    = auth()->check() && $role === 'admin';
+                    $isOperator = auth()->check() && $role === 'operator';
+                    $isViewer   = auth()->check() && ($role === 'viewer' || $role === null);
+
                     $mustChange = auth()->check() && (($user->must_change_password ?? false) === true);
+
+                    $scopeWilayah = trim(
+                        ($user->dusun ?? '') .
+                        (!empty($user->rw) ? " / RW {$user->rw}" : '') .
+                        (!empty($user->rt) ? " / RT {$user->rt}" : '')
+                    );
                 @endphp
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
 
-                    {{-- ✅ Saat wajib ganti password, kunci visual: hanya tampilkan "Profile" via dropdown --}}
+                    {{-- ✅ Saat wajib ganti password: kunci menu (hanya Profile via dropdown) --}}
                     @if(!$mustChange)
                         <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                             {{ __('Dashboard') }}
@@ -43,13 +52,13 @@
                             {{ __('Peta') }}
                         </x-nav-link>
 
+                        {{-- ✅ Admin only --}}
                         @if($isAdmin)
                             <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
                                 {{ __('Manajemen Akun') }}
                             </x-nav-link>
                         @endif
                     @else
-                        {{-- Badge kecil biar user ngerti kenapa menu hilang --}}
                         <span class="inline-flex items-center self-center px-3 py-1 text-xs font-semibold text-red-800 bg-red-100 border border-red-200 rounded-full">
                             Wajib ganti password
                         </span>
@@ -59,7 +68,7 @@
 
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
-                <x-dropdown align="right" width="48">
+                <x-dropdown align="right" width="56">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out bg-white border border-transparent rounded-md hover:text-gray-700 focus:outline-none">
                             <div>{{ Auth::user()->name }}</div>
@@ -73,15 +82,35 @@
                     </x-slot>
 
                     <x-slot name="content">
-                        <div class="px-4 py-2 text-xs text-gray-500">
-                            Role: <span class="font-semibold text-gray-700">{{ Auth::user()->role ?? '-' }}</span>
+                        {{-- Info ringkas akun --}}
+                        <div class="px-4 pt-3 pb-2 space-y-1 text-xs text-gray-500">
+                            <div>
+                                Role:
+                                <span class="font-semibold text-gray-700">{{ $role ?? '-' }}</span>
+                            </div>
+
+                            @if($isOperator || $isViewer)
+                                <div>
+                                    Wilayah:
+                                    <span class="font-semibold text-gray-700">{{ $scopeWilayah !== '' ? $scopeWilayah : '-' }}</span>
+                                </div>
+                            @endif
+
+                            @if(!empty($user->jabatan))
+                                <div>
+                                    Jabatan:
+                                    <span class="font-semibold text-gray-700">{{ $user->jabatan }}</span>
+                                </div>
+                            @endif
+
+                            @if($mustChange)
+                                <div class="pt-1 text-red-600">
+                                    Wajib ganti password sebelum akses menu lain.
+                                </div>
+                            @endif
                         </div>
 
-                        @if(($user->must_change_password ?? false) === true)
-                            <div class="px-4 pb-2 text-xs text-red-600">
-                                Wajib ganti password sebelum akses menu lain.
-                            </div>
-                        @endif
+                        <div class="border-t border-gray-100"></div>
 
                         <x-dropdown-link :href="route('profile.edit')">
                             {{ __('Profile') }}
@@ -115,7 +144,6 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-
             @if(!$mustChange)
                 <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                     {{ __('Dashboard') }}
@@ -154,9 +182,28 @@
             <div class="px-4">
                 <div class="text-base font-medium text-gray-800">{{ Auth::user()->name }}</div>
                 <div class="text-sm font-medium text-gray-500">{{ Auth::user()->email }}</div>
-                <div class="mt-1 text-xs text-gray-500">
-                    Role: <span class="font-semibold text-gray-700">{{ Auth::user()->role ?? '-' }}</span>
+
+                <div class="mt-2 space-y-1 text-xs text-gray-500">
+                    <div>
+                        Role: <span class="font-semibold text-gray-700">{{ $role ?? '-' }}</span>
+                    </div>
+
+                    <div>
+                        Wilayah: <span class="font-semibold text-gray-700">{{ $scopeWilayah !== '' ? $scopeWilayah : '-' }}</span>
+                    </div>
+
+                    @if(!empty($user->jabatan))
+                        <div>
+                            Jabatan: <span class="font-semibold text-gray-700">{{ $user->jabatan }}</span>
+                        </div>
+                    @endif
                 </div>
+
+                @if($mustChange)
+                    <div class="mt-2 text-xs text-red-600">
+                        Wajib ganti password sebelum akses menu lain.
+                    </div>
+                @endif
             </div>
 
             <div class="mt-3 space-y-1">

@@ -7,25 +7,49 @@ use Illuminate\Http\Request;
 
 class CitizenEventController extends Controller
 {
-    /**
-     * Tampilkan daftar peristiwa kependudukan.
-     */
     public function index(Request $request)
     {
-        $status = $request->input('status'); // contoh filter status_verifikasi di masa depan
+        $q = trim((string) $request->query('q', ''));
+        $status = trim((string) $request->query('status', ''));
 
-        $events = CitizenEvent::with('citizen')
-            ->when($status, function ($query) use ($status) {
-                $query->where('status_verifikasi', $status);
-            })
-            ->orderByDesc('tanggal_peristiwa')
-            ->orderByDesc('created_at')
-            ->paginate(15)
-            ->withQueryString();
+        $query = CitizenEvent::query()
+            ->with(['citizen:id,nik,nama,dusun,rw,rt'])
+            ->orderByDesc('id');
 
-        return view('citizen_events.index', [
-            'events' => $events,
-            'status' => $status,
-        ]);
+        // ✅ scope wilayah (operator dibatasi dusun/rw/rt)
+        $user = $request->user();
+        if ($user && ($user->role ?? null) === 'operator') {
+            if (!empty($user->dusun)) {
+                $query->where('dusun', $user->dusun);
+            }
+            if (!empty($user->rw)) {
+                $query->where('rw', $user->rw);
+            }
+            if (!empty($user->rt)) {
+                $query->where('rt', $user->rt);
+            }
+        }
+
+        // ✅ filter status (sesuai dropdown view kamu: pending/verified/rejected)
+        if ($status !== '') {
+            $query->where('status_verifikasi', $status);
+        }
+
+        // ✅ search
+        if ($q !== '') {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('nik', 'like', "%{$q}%")
+                    ->orWhere('nama', 'like', "%{$q}%")
+                    ->orWhere('jenis_peristiwa', 'like', "%{$q}%")
+                    ->orWhere('dusun', 'like', "%{$q}%")
+                    ->orWhere('rw', 'like', "%{$q}%")
+                    ->orWhere('rt', 'like', "%{$q}%")
+                    ->orWhere('keterangan', 'like', "%{$q}%");
+            });
+        }
+
+        $events = $query->paginate(20)->withQueryString();
+
+        return view('citizen-events.index', compact('events', 'q', 'status'));
     }
 }

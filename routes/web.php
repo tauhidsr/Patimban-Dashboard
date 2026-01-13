@@ -163,7 +163,7 @@ Route::middleware(['auth', 'force_password_change'])->group(function () {
     // =========================
     Route::prefix('peristiwa')->group(function () {
 
-        // list & detail (viewer/operator/admin boleh lihat)
+        // ✅ list & detail (viewer/operator/admin boleh lihat)
         Route::get('/', [PopulationEventController::class, 'index'])
             ->name('events.index');
 
@@ -171,7 +171,7 @@ Route::middleware(['auth', 'force_password_change'])->group(function () {
             ->whereNumber('id')
             ->name('events.show');
 
-        // create & store (operator + admin)
+        // ✅ create & store (operator + admin)
         Route::middleware('role:admin,operator')->group(function () {
 
             // form pilih jenis peristiwa
@@ -191,9 +191,10 @@ Route::middleware(['auth', 'force_password_change'])->group(function () {
                 ->name('events.store');
         });
 
-        // verifikasi (admin only)
+        // ✅ verifikasi (admin only)
         Route::middleware('role:admin')->group(function () {
             Route::post('/{id}/verifikasi', [PopulationEventController::class, 'verify'])
+                ->whereNumber('id')
                 ->name('events.verify');
         });
     });
