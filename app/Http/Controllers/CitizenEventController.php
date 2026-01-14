@@ -50,6 +50,6 @@ class CitizenEventController extends Controller
 
         $events = $query->paginate(20)->withQueryString();
 
-        return view('citizen-events.index', compact('events', 'q', 'status'));
+        return view('citizen_events.index', compact('events', 'q', 'status'));
     }
 }

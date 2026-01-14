@@ -20,7 +20,7 @@ class PopulationEventController extends Controller
             return $query;
         }
 
-        // ✅ safety: operator minimal harus punya dusun
+        // safety: operator minimal harus punya dusun
         if (empty($user->dusun)) {
             abort(403, 'Akun operator belum memiliki scope wilayah (dusun). Hubungi admin.');
         }
@@ -38,18 +38,68 @@ class PopulationEventController extends Controller
     }
 
     /**
-     * ✅ B10: hard-guard role di controller (anti bypass)
+     * Helper: cari citizen by NIK + enforce scope wilayah operator.
      */
-    private function requireRole($user, array $allowedRoles, string $message = 'Anda tidak memiliki akses.')
+    private function findCitizenByNikWithScope(string $nik, $user): ?Citizen
     {
-        $role = $user->role ?? 'viewer';
-        if (!in_array($role, $allowedRoles, true)) {
-            abort(403, $message);
+        $citizenQuery = Citizen::query()
+            ->select(['id', 'nik', 'nama', 'no_kk', 'status_dasar', 'dusun', 'rw', 'rt'])
+            ->where('nik', $nik);
+
+        if (($user->role ?? 'viewer') === 'operator') {
+            if (empty($user->dusun)) {
+                abort(403, 'Akun operator belum memiliki scope wilayah (dusun). Hubungi admin.');
+            }
+            $citizenQuery->where('dusun', $user->dusun);
+            if (!empty($user->rw)) $citizenQuery->where('rw', $user->rw);
+            if (!empty($user->rt)) $citizenQuery->where('rt', $user->rt);
         }
+
+        return $citizenQuery->first();
+    }
+
+    /**
+     * Helper: normalisasi tanggal_lapor (kalau kosong -> hari ini)
+     */
+    private function normalizeTanggalLapor(array &$validated): void
+    {
+        if (empty($validated['tanggal_lapor'])) {
+            $validated['tanggal_lapor'] = now()->toDateString();
+        }
+    }
+
+    /**
+     * Helper: guard citizen exist + scope
+     */
+    private function guardCitizenOrBack(?Citizen $citizen)
+    {
+        if (!$citizen) {
+            return back()
+                ->withErrors(['nik' => 'NIK tidak ditemukan / tidak termasuk wilayah Anda.'])
+                ->withInput();
+        }
+        return null;
+    }
+
+    /**
+     * Helper: guard citizen must be aktif
+     */
+    private function guardCitizenAktifOrBack(Citizen $citizen, string $eventLabel)
+    {
+        if (($citizen->status_dasar ?? '') !== 'aktif') {
+            $status = strtoupper((string) $citizen->status_dasar);
+            return back()
+                ->withErrors(['nik' => "Penduduk ini tidak bisa dicatat peristiwa {$eventLabel} karena statusnya sudah: {$status}."])
+                ->withInput();
+        }
+        return null;
     }
 
     public function index(Request $request)
     {
+        // ✅ Policy: semua user login boleh lihat list
+        $this->authorize('viewAny', PopulationEvent::class);
+
         $user = $request->user();
 
         $query = PopulationEvent::query()
@@ -96,33 +146,37 @@ class PopulationEventController extends Controller
 
     public function create()
     {
-        // ✅ B10: admin/operator only
-        $this->requireRole(Auth::user(), ['admin', 'operator'], 'Hanya admin/operator yang dapat menambah peristiwa.');
+        // ✅ Policy: admin/operator
+        $this->authorize('create', PopulationEvent::class);
 
         return view('events.create');
     }
 
     public function store(Request $request)
     {
-        // ✅ B10: admin/operator only (walau sementara kosong)
-        $this->requireRole($request->user(), ['admin', 'operator'], 'Hanya admin/operator yang dapat menyimpan peristiwa.');
+        // ✅ Policy: admin/operator (walau sementara kosong)
+        $this->authorize('create', PopulationEvent::class);
 
-        // sementara kosong -> nanti diisi untuk jenis lain
         abort(404);
     }
 
+    /**
+     * =========================
+     * PERISTIWA MENINGGAL
+     * =========================
+     */
     public function createMeninggal()
     {
-        // ✅ B10: admin/operator only
-        $this->requireRole(Auth::user(), ['admin', 'operator'], 'Hanya admin/operator yang dapat mencatat peristiwa.');
+        // ✅ Policy: admin/operator
+        $this->authorize('create', PopulationEvent::class);
 
         return view('events.form-meninggal');
     }
 
     public function storeMeninggal(Request $request)
     {
-        // ✅ B10: admin/operator only
-        $this->requireRole($request->user(), ['admin', 'operator'], 'Hanya admin/operator yang dapat menyimpan peristiwa.');
+        // ✅ Policy: admin/operator
+        $this->authorize('create', PopulationEvent::class);
 
         $user = $request->user();
 
@@ -160,38 +214,12 @@ class PopulationEventController extends Controller
             ]
         );
 
-        // ✅ ambil citizen + scope operator (nutup bypass submit NIK luar wilayah)
-        $citizenQuery = Citizen::query()
-            ->select(['id', 'nik', 'nama', 'no_kk', 'status_dasar', 'dusun', 'rw', 'rt'])
-            ->where('nik', $validated['nik']);
+        $citizen = $this->findCitizenByNikWithScope($validated['nik'], $user);
 
-        if (($user->role ?? 'viewer') === 'operator') {
-            if (empty($user->dusun)) {
-                abort(403, 'Akun operator belum memiliki scope wilayah (dusun). Hubungi admin.');
-            }
-            $citizenQuery->where('dusun', $user->dusun);
-            if (!empty($user->rw)) $citizenQuery->where('rw', $user->rw);
-            if (!empty($user->rt)) $citizenQuery->where('rt', $user->rt);
-        }
+        if ($resp = $this->guardCitizenOrBack($citizen)) return $resp;
+        if ($resp = $this->guardCitizenAktifOrBack($citizen, 'meninggal')) return $resp;
 
-        $citizen = $citizenQuery->first();
-
-        if (!$citizen) {
-            return back()
-                ->withErrors(['nik' => 'NIK tidak ditemukan / tidak termasuk wilayah Anda.'])
-                ->withInput();
-        }
-
-        if (($citizen->status_dasar ?? '') !== 'aktif') {
-            $status = strtoupper((string) $citizen->status_dasar);
-            return back()
-                ->withErrors(['nik' => "Penduduk ini tidak bisa dicatat peristiwa meninggal karena statusnya sudah: {$status}."])
-                ->withInput();
-        }
-
-        if (empty($validated['tanggal_lapor'])) {
-            $validated['tanggal_lapor'] = now()->toDateString();
-        }
+        $this->normalizeTanggalLapor($validated);
 
         $filePath = null;
         if ($request->hasFile('file_akta_kematian_path')) {
@@ -229,40 +257,233 @@ class PopulationEventController extends Controller
             ->with('success', 'Peristiwa meninggal berhasil dicatat dan menunggu verifikasi admin.');
     }
 
+    /**
+     * =========================
+     * STEP 1: PERISTIWA HILANG
+     * =========================
+     */
+    public function createHilang()
+    {
+        // ✅ Policy: admin/operator
+        $this->authorize('create', PopulationEvent::class);
+
+        return view('events.form-hilang');
+    }
+
+    public function storeHilang(Request $request)
+    {
+        // ✅ Policy: admin/operator
+        $this->authorize('create', PopulationEvent::class);
+
+        $user = $request->user();
+
+        $request->merge([
+            'nik' => $request->filled('nik') ? trim($request->nik) : null,
+        ]);
+
+        $validated = $request->validate(
+            [
+                'nik'               => 'required|string|max:20|exists:citizens,nik',
+                'tanggal_peristiwa' => 'required|date|before_or_equal:today',
+                'tanggal_lapor'     => 'nullable|date|before_or_equal:today',
+                'catatan_peristiwa' => 'nullable|string',
+            ],
+            [
+                'required' => ':attribute wajib diisi.',
+                'date'     => ':attribute harus berupa tanggal yang valid.',
+                'tanggal_peristiwa.before_or_equal' => 'Tanggal peristiwa tidak boleh lebih dari hari ini.',
+                'tanggal_lapor.before_or_equal'     => 'Tanggal lapor tidak boleh lebih dari hari ini.',
+                'nik.exists' => 'NIK tidak ditemukan. Pastikan penduduk sudah terdaftar di data penduduk.',
+            ],
+            [
+                'nik'               => 'NIK',
+                'tanggal_peristiwa' => 'Tanggal peristiwa',
+                'tanggal_lapor'     => 'Tanggal lapor',
+                'catatan_peristiwa' => 'Catatan peristiwa',
+            ]
+        );
+
+        $citizen = $this->findCitizenByNikWithScope($validated['nik'], $user);
+
+        if ($resp = $this->guardCitizenOrBack($citizen)) return $resp;
+        if ($resp = $this->guardCitizenAktifOrBack($citizen, 'hilang')) return $resp;
+
+        $this->normalizeTanggalLapor($validated);
+
+        PopulationEvent::create([
+            'citizen_id'        => $citizen->id,
+            'nik'               => $citizen->nik,
+            'no_kk'             => $citizen->no_kk,
+            'nama'              => $citizen->nama,
+            'jenis_peristiwa'   => 'hilang',
+
+            'dusun_id'          => null,
+            'rw_id'             => null,
+            'rt_id'             => null,
+
+            'tanggal_peristiwa' => $validated['tanggal_peristiwa'],
+            'tanggal_lapor'     => $validated['tanggal_lapor'],
+            'catatan_peristiwa' => $validated['catatan_peristiwa'] ?? null,
+
+            'created_by'        => Auth::id(),
+            'status_verifikasi' => 'menunggu',
+        ]);
+
+        return redirect()
+            ->route('events.index')
+            ->with('success', 'Peristiwa hilang berhasil dicatat dan menunggu verifikasi admin.');
+    }
+
+    /**
+     * =========================
+     * STEP 2: PERISTIWA LAHIR
+     * =========================
+     */
+    public function createLahir()
+    {
+        // ✅ Policy: admin/operator
+        $this->authorize('create', PopulationEvent::class);
+
+        return view('events.form-lahir');
+    }
+
+    public function storeLahir(Request $request)
+    {
+        // ✅ Policy: admin/operator
+        $this->authorize('create', PopulationEvent::class);
+
+        $user = $request->user();
+
+        $request->merge([
+            'nik' => $request->filled('nik') ? trim($request->nik) : null,
+        ]);
+
+        $validated = $request->validate(
+            [
+                'nik'               => 'required|string|max:20|exists:citizens,nik',
+                'tanggal_peristiwa' => 'required|date|before_or_equal:today',
+                'tanggal_lapor'     => 'nullable|date|before_or_equal:today',
+
+                // LAHIR (kolom sudah ada di model kamu)
+                'tempat_lahir'          => 'nullable|string|max:255',
+                'jam_lahir'             => 'nullable|date_format:H:i',
+                'penolong_kelahiran'    => 'nullable|in:dokter,bidan,tenaga_kesehatan,dukun,lainnya',
+
+                'catatan_peristiwa'     => 'nullable|string',
+            ],
+            [
+                'required' => ':attribute wajib diisi.',
+                'date'     => ':attribute harus berupa tanggal yang valid.',
+                'tanggal_peristiwa.before_or_equal' => 'Tanggal peristiwa tidak boleh lebih dari hari ini.',
+                'tanggal_lapor.before_or_equal'     => 'Tanggal lapor tidak boleh lebih dari hari ini.',
+                'nik.exists' => 'NIK tidak ditemukan. Pastikan penduduk sudah terdaftar di data penduduk.',
+                'jam_lahir.date_format' => 'Jam lahir harus format HH:MM.',
+                'penolong_kelahiran.in' => 'Penolong kelahiran tidak valid.',
+            ],
+            [
+                'nik'               => 'NIK',
+                'tanggal_peristiwa' => 'Tanggal peristiwa',
+                'tanggal_lapor'     => 'Tanggal lapor',
+                'tempat_lahir'      => 'Tempat lahir',
+                'jam_lahir'         => 'Jam lahir',
+                'penolong_kelahiran'=> 'Penolong kelahiran',
+                'catatan_peristiwa' => 'Catatan peristiwa',
+            ]
+        );
+
+        $citizen = $this->findCitizenByNikWithScope($validated['nik'], $user);
+
+        if ($resp = $this->guardCitizenOrBack($citizen)) return $resp;
+        if ($resp = $this->guardCitizenAktifOrBack($citizen, 'lahir')) return $resp;
+
+        $this->normalizeTanggalLapor($validated);
+
+        PopulationEvent::create([
+            'citizen_id'        => $citizen->id,
+            'nik'               => $citizen->nik,
+            'no_kk'             => $citizen->no_kk,
+            'nama'              => $citizen->nama,
+            'jenis_peristiwa'   => 'lahir',
+
+            'dusun_id'          => null,
+            'rw_id'             => null,
+            'rt_id'             => null,
+
+            'tanggal_peristiwa' => $validated['tanggal_peristiwa'],
+            'tanggal_lapor'     => $validated['tanggal_lapor'],
+            'catatan_peristiwa' => $validated['catatan_peristiwa'] ?? null,
+
+            'created_by'        => Auth::id(),
+            'status_verifikasi' => 'menunggu',
+
+            'tempat_lahir'       => $validated['tempat_lahir'] ?? null,
+            'jam_lahir'          => $validated['jam_lahir'] ?? null,
+            'penolong_kelahiran' => $validated['penolong_kelahiran'] ?? null,
+        ]);
+
+        return redirect()
+            ->route('events.index')
+            ->with('success', 'Peristiwa lahir berhasil dicatat dan menunggu verifikasi admin.');
+    }
+
+    /**
+     * =========================
+     * SIAPKAN PERISTIWA LAIN (NEXT)
+     * =========================
+     * Catatan: routes + view belum dibuat => aman tidak dipanggil.
+     */
+    public function createDatang()
+    {
+        $this->authorize('create', PopulationEvent::class);
+        return view('events.form-datang');
+    }
+
+    public function storeDatang(Request $request)
+    {
+        $this->authorize('create', PopulationEvent::class);
+        abort(404);
+    }
+
+    public function createPindah()
+    {
+        $this->authorize('create', PopulationEvent::class);
+        return view('events.form-pindah');
+    }
+
+    public function storePindah(Request $request)
+    {
+        $this->authorize('create', PopulationEvent::class);
+        abort(404);
+    }
+
+    public function createSementara()
+    {
+        $this->authorize('create', PopulationEvent::class);
+        return view('events.form-sementara');
+    }
+
+    public function storeSementara(Request $request)
+    {
+        $this->authorize('create', PopulationEvent::class);
+        abort(404);
+    }
+
     public function show($id)
     {
-        $user = Auth::user();
-
         $event = PopulationEvent::findOrFail($id);
 
-        // ✅ anti bypass URL detail event untuk operator
-        if (($user->role ?? 'viewer') === 'operator') {
-            if (empty($user->dusun)) {
-                abort(403, 'Akun operator belum memiliki scope wilayah (dusun). Hubungi admin.');
-            }
-
-            $citizenQuery = Citizen::query()
-                ->where('id', $event->citizen_id)
-                ->where('dusun', $user->dusun);
-
-            if (!empty($user->rw)) $citizenQuery->where('rw', $user->rw);
-            if (!empty($user->rt)) $citizenQuery->where('rt', $user->rt);
-
-            if (!$citizenQuery->exists()) {
-                abort(403, 'Anda tidak memiliki akses ke peristiwa di luar wilayah Anda.');
-            }
-        }
+        // ✅ Policy: operator dibatasi scope dusun/rw/rt (logic ada di policy)
+        $this->authorize('view', $event);
 
         return view('events.show', ['event' => $event]);
     }
 
     public function verify(Request $request, $id)
     {
-        // ✅ B10: admin only
-        $this->requireRole($request->user(), ['admin'], 'Hanya admin yang dapat melakukan verifikasi.');
-
-        // (bagian verify kamu sudah oke — biarin tetap seperti yang sekarang)
         $event = PopulationEvent::findOrFail($id);
+
+        // ✅ Policy: admin only
+        $this->authorize('verify', $event);
 
         $validated = $request->validate(
             [
@@ -313,9 +534,11 @@ class PopulationEventController extends Controller
             $event->saveQuietly();
         }
 
+        // event yang mengubah status_dasar
         $map = [
             'meninggal' => 'meninggal',
             'pindah'    => 'pindah',
+            'hilang'    => 'hilang',
         ];
 
         if ($newStatus === 'disetujui' && empty($event->status_applied_at)) {

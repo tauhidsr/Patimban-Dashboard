@@ -178,13 +178,53 @@ Route::middleware(['auth', 'force_password_change'])->group(function () {
             Route::get('/create', [PopulationEventController::class, 'create'])
                 ->name('events.create');
 
-            // form peristiwa MENINGGAL
+            // =========================
+            // MENINGGAL
+            // =========================
             Route::get('/meninggal/create', [PopulationEventController::class, 'createMeninggal'])
                 ->name('events.meninggal.create');
 
-            // simpan peristiwa MENINGGAL
             Route::post('/meninggal/store', [PopulationEventController::class, 'storeMeninggal'])
                 ->name('events.meninggal.store');
+
+            // =========================
+            // STEP 1: HILANG
+            // =========================
+            Route::get('/hilang/create', [PopulationEventController::class, 'createHilang'])
+                ->name('events.hilang.create');
+
+            Route::post('/hilang/store', [PopulationEventController::class, 'storeHilang'])
+                ->name('events.hilang.store');
+
+            // =========================
+            // STEP 2: LAHIR
+            // =========================
+            Route::get('/lahir/create', [PopulationEventController::class, 'createLahir'])
+                ->name('events.lahir.create');
+
+            Route::post('/lahir/store', [PopulationEventController::class, 'storeLahir'])
+                ->name('events.lahir.store');
+
+            // =========================
+            // SIAPKAN PERISTIWA LAIN (NEXT)
+            // =========================
+            Route::get('/datang/create', [PopulationEventController::class, 'createDatang'])
+                ->name('events.datang.create');
+
+            Route::post('/datang/store', [PopulationEventController::class, 'storeDatang'])
+                ->name('events.datang.store');
+
+            Route::get('/pindah/create', [PopulationEventController::class, 'createPindah'])
+                ->name('events.pindah.create');
+
+            Route::post('/pindah/store', [PopulationEventController::class, 'storePindah'])
+                ->name('events.pindah.store');
+
+            Route::get('/sementara/create', [PopulationEventController::class, 'createSementara'])
+                ->name('events.sementara.create');
+
+            Route::post('/sementara/store', [PopulationEventController::class, 'storeSementara'])
+                ->name('events.sementara.store');
 
             // (opsional) simpan peristiwa baru umum
             Route::post('/', [PopulationEventController::class, 'store'])

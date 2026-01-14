@@ -9,7 +9,6 @@
     @php
         $user = auth()->user();
         $role = $user->role ?? 'viewer';
-        $canCreateEvent = in_array($role, ['admin', 'operator'], true);
 
         $pendingCount = $events->getCollection()
             ->where('status_verifikasi', 'menunggu')
@@ -64,17 +63,17 @@
                         </p>
                     </div>
 
-                    {{-- ✅ Guard tombol: hanya admin/operator --}}
-                    @if($canCreateEvent)
+                    {{-- ✅ Policy-based: tombol tambah peristiwa --}}
+                    @can('create', \App\Models\PopulationEvent::class)
                         <a href="{{ route('events.create') }}"
                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700">
                             + Tambah Peristiwa
                         </a>
                     @else
                         <span class="inline-flex items-center px-3 py-1 text-xs font-semibold text-gray-700 bg-gray-100 border border-gray-200 rounded-full">
-                            Viewer: hanya melihat data
+                            {{ $role === 'viewer' ? 'Viewer: hanya melihat data' : 'Tidak punya akses tambah peristiwa' }}
                         </span>
-                    @endif
+                    @endcan
                 </div>
 
                 {{-- filter & pencarian --}}
@@ -181,7 +180,7 @@
                                     {{ $event->tanggal_peristiwa ? $event->tanggal_peristiwa->format('d-m-Y') : '-' }}
                                 </td>
 
-                                {{-- ✅ STATUS + INFO VERIFIKASI --}}
+                                {{-- STATUS + INFO VERIFIKASI --}}
                                 <td class="px-4 py-2 align-top">
                                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
                                         @if($event->status_verifikasi === 'menunggu')
@@ -222,10 +221,16 @@
 
                                 {{-- aksi --}}
                                 <td class="px-4 py-2 align-top">
-                                    <a href="{{ route('events.show', $event->id) }}"
-                                       class="inline-flex px-3 py-1 text-xs font-medium text-white bg-indigo-600 rounded hover:bg-indigo-700">
-                                        Lihat
-                                    </a>
+                                    @can('view', $event)
+                                        <a href="{{ route('events.show', $event->id) }}"
+                                           class="inline-flex px-3 py-1 text-xs font-medium text-white bg-indigo-600 rounded hover:bg-indigo-700">
+                                            Lihat
+                                        </a>
+                                    @else
+                                        <span class="inline-flex px-3 py-1 text-xs font-semibold text-gray-700 bg-gray-100 border border-gray-200 rounded">
+                                            Tidak ada akses
+                                        </span>
+                                    @endcan
                                 </td>
                             </tr>
                         @empty

@@ -19,7 +19,7 @@ class PopulationEventPolicy
     /**
      * Detail event:
      * - admin/viewer: boleh
-     * - operator: hanya boleh jika event citizen masih dalam scope wilayahnya (dusun/rw/rt)
+     * - operator: hanya jika event citizen masih dalam scope wilayahnya (dusun/rw/rt)
      */
     public function view(User $user, PopulationEvent $event): bool
     {
@@ -34,7 +34,6 @@ class PopulationEventPolicy
             return false;
         }
 
-        // cari citizen terkait event
         $citizenQuery = Citizen::query();
 
         if (!empty($event->citizen_id)) {
@@ -42,7 +41,6 @@ class PopulationEventPolicy
         } elseif (!empty($event->nik)) {
             $citizenQuery->where('nik', $event->nik);
         } else {
-            // event tidak punya citizen_id & nik => anggap tidak aman untuk operator
             return false;
         }
 

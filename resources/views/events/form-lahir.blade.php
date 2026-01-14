@@ -1,8 +1,8 @@
-{{-- resources/views/events/form-meninggal.blade.php --}}
+{{-- resources/views/events/form-lahir.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
         <h2 class="text-xl font-semibold leading-tight text-gray-800">
-            Form Peristiwa Meninggal
+            Form Peristiwa Lahir
         </h2>
     </x-slot>
 
@@ -42,21 +42,21 @@
                     </div>
                 @endif
 
-                <form id="formMeninggal"
-                      action="{{ route('events.meninggal.store') }}"
+                <form id="formLahir"
+                      action="{{ route('events.lahir.store') }}"
                       method="POST"
-                      enctype="multipart/form-data"
                       class="space-y-4">
                     @csrf
 
+                    {{-- ✅ Identitas penduduk (TomSelect reusable) --}}
                     @include('events.partials.identity-tomselect', [
                         'canCreate' => $canCreate,
-                        'eventLabel' => 'Meninggal',
+                        'eventLabel' => 'Lahir',
                         'onlyActive' => true,
                     ])
 
                     <h3 class="pt-4 mb-2 text-lg font-semibold text-gray-700">
-                        Detail Peristiwa Meninggal
+                        Detail Peristiwa Lahir
                     </h3>
 
                     <div>
@@ -83,71 +83,34 @@
                     </div>
 
                     <div>
-                        <label class="block mb-1 text-sm font-medium">Tempat Meninggal</label>
-                        <input type="text" name="tempat_meninggal" value="{{ old('tempat_meninggal') }}"
+                        <label class="block mb-1 text-sm font-medium">Tempat Lahir (Opsional)</label>
+                        <input type="text" name="tempat_lahir" value="{{ old('tempat_lahir') }}"
                                class="w-full border-gray-300 rounded" {{ $canCreate ? '' : 'disabled' }}>
-                        @error('tempat_meninggal')
+                        @error('tempat_lahir')
                             <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label class="block mb-1 text-sm font-medium">Jam Kematian</label>
-                        <input type="time" name="jam_kematian" value="{{ old('jam_kematian') }}"
+                        <label class="block mb-1 text-sm font-medium">Jam Lahir (Opsional)</label>
+                        <input type="time" name="jam_lahir" value="{{ old('jam_lahir') }}"
                                class="w-full border-gray-300 rounded" {{ $canCreate ? '' : 'disabled' }}>
-                        @error('jam_kematian')
+                        @error('jam_lahir')
                             <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label class="block mb-1 text-sm font-medium">Penyebab Kematian</label>
-                        <select name="penyebab_kematian" class="w-full border-gray-300 rounded" {{ $canCreate ? '' : 'disabled' }}>
+                        <label class="block mb-1 text-sm font-medium">Penolong Kelahiran (Opsional)</label>
+                        <select name="penolong_kelahiran" class="w-full border-gray-300 rounded" {{ $canCreate ? '' : 'disabled' }}>
                             <option value="">-- pilih --</option>
-                            <option value="sakit_biasa_tua" {{ old('penyebab_kematian') === 'sakit_biasa_tua' ? 'selected' : '' }}>Sakit Biasa / Tua</option>
-                            <option value="wabah_penyakit" {{ old('penyebab_kematian') === 'wabah_penyakit' ? 'selected' : '' }}>Wabah Penyakit</option>
-                            <option value="kecelakaan" {{ old('penyebab_kematian') === 'kecelakaan' ? 'selected' : '' }}>Kecelakaan</option>
-                            <option value="kriminalitas" {{ old('penyebab_kematian') === 'kriminalitas' ? 'selected' : '' }}>Kriminalitas</option>
-                            <option value="bunuh_diri" {{ old('penyebab_kematian') === 'bunuh_diri' ? 'selected' : '' }}>Bunuh Diri</option>
-                            <option value="lainnya" {{ old('penyebab_kematian') === 'lainnya' ? 'selected' : '' }}>Lainnya</option>
+                            <option value="dokter" {{ old('penolong_kelahiran') === 'dokter' ? 'selected' : '' }}>Dokter</option>
+                            <option value="bidan" {{ old('penolong_kelahiran') === 'bidan' ? 'selected' : '' }}>Bidan</option>
+                            <option value="tenaga_kesehatan" {{ old('penolong_kelahiran') === 'tenaga_kesehatan' ? 'selected' : '' }}>Tenaga Kesehatan</option>
+                            <option value="dukun" {{ old('penolong_kelahiran') === 'dukun' ? 'selected' : '' }}>Dukun</option>
+                            <option value="lainnya" {{ old('penolong_kelahiran') === 'lainnya' ? 'selected' : '' }}>Lainnya</option>
                         </select>
-                        @error('penyebab_kematian')
-                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label class="block mb-1 text-sm font-medium">Yang Menyatakan Kematian</label>
-                        <select name="yang_menyatakan_kematian" class="w-full border-gray-300 rounded" {{ $canCreate ? '' : 'disabled' }}>
-                            <option value="">-- pilih --</option>
-                            <option value="dokter" {{ old('yang_menyatakan_kematian') === 'dokter' ? 'selected' : '' }}>Dokter</option>
-                            <option value="tenaga_kesehatan" {{ old('yang_menyatakan_kematian') === 'tenaga_kesehatan' ? 'selected' : '' }}>Tenaga Kesehatan</option>
-                            <option value="kepolisian" {{ old('yang_menyatakan_kematian') === 'kepolisian' ? 'selected' : '' }}>Kepolisian</option>
-                            <option value="lainnya" {{ old('yang_menyatakan_kematian') === 'lainnya' ? 'selected' : '' }}>Lainnya</option>
-                        </select>
-                        @error('yang_menyatakan_kematian')
-                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label class="block mb-1 text-sm font-medium">Nomor Akta Kematian</label>
-                        <input type="text" name="nomor_akta_kematian" value="{{ old('nomor_akta_kematian') }}"
-                               class="w-full border-gray-300 rounded" {{ $canCreate ? '' : 'disabled' }}>
-                        @error('nomor_akta_kematian')
-                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label class="block mb-1 text-sm font-medium">Upload Akta Kematian (Opsional)</label>
-                        <input type="file"
-                               name="file_akta_kematian_path"
-                               accept=".jpg,.jpeg,.png,.pdf"
-                               class="w-full border-gray-300 rounded"
-                               {{ $canCreate ? '' : 'disabled' }}>
-                        <p class="mt-1 text-xs text-gray-500">Format: JPG/PNG/PDF, max 2MB.</p>
-                        @error('file_akta_kematian_path')
+                        @error('penolong_kelahiran')
                             <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                         @enderror
                     </div>

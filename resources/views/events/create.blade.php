@@ -1,3 +1,4 @@
+{{-- resources/views/events/create.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
         <h2 class="text-xl font-semibold text-gray-800">
@@ -29,18 +30,28 @@
                     $canCreate = in_array($role, ['admin','operator'], true);
 
                     // ✅ kalau route belum ada (safety), fallback '#'
+                    $lahirHref = \Illuminate\Support\Facades\Route::has('events.lahir.create')
+                        ? route('events.lahir.create')
+                        : '#';
+
                     $meninggalHref = \Illuminate\Support\Facades\Route::has('events.meninggal.create')
                         ? route('events.meninggal.create')
                         : '#';
 
+                    $hilangHref = \Illuminate\Support\Facades\Route::has('events.hilang.create')
+                        ? route('events.hilang.create')
+                        : '#';
+
                     $items = [
-                        ['label' => 'Kelahiran', 'ready' => false, 'href' => '#'],
+                        ['label' => 'Kelahiran', 'ready' => true,  'href' => $lahirHref],
                         ['label' => 'Datang', 'ready' => false, 'href' => '#'],
                         ['label' => 'Pindah', 'ready' => false, 'href' => '#'],
                         ['label' => 'Meninggal', 'ready' => true,  'href' => $meninggalHref],
-                        ['label' => 'Hilang', 'ready' => false, 'href' => '#'],
+                        ['label' => 'Hilang', 'ready' => true,  'href' => $hilangHref],
                         ['label' => 'Penduduk Sementara (1×24 jam)', 'ready' => false, 'href' => '#'],
                     ];
+
+                    $activeLabels = collect($items)->where('ready', true)->pluck('label')->implode(', ');
                 @endphp
 
                 <div class="flex items-start justify-between gap-4">
@@ -116,7 +127,8 @@
                     </a>
 
                     <div class="text-xs text-gray-500">
-                        Saat ini yang aktif: <span class="font-semibold text-gray-700">Meninggal</span>
+                        Saat ini yang aktif:
+                        <span class="font-semibold text-gray-700">{{ $activeLabels ?: '-' }}</span>
                     </div>
                 </div>
             </div>

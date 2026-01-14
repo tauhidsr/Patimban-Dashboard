@@ -162,7 +162,7 @@
                             @endif
                         </p>
 
-                        {{-- ✅ Step A4: tampilkan verifier + waktu --}}
+                        {{-- tampilkan verifier + waktu --}}
                         @if ($event->verified_by && $event->verified_at)
                             <p class="mt-1 text-xs text-gray-600">
                                 Diverifikasi oleh
@@ -177,12 +177,8 @@
                         @endif
                     </div>
 
-                    @php
-                        $isAdmin = auth()->check() && (auth()->user()->role === 'admin');
-                    @endphp
-
-                    {{-- ✅ Form verifikasi: hanya admin --}}
-                    @if($isAdmin)
+                    {{-- ✅ Form verifikasi: policy-based --}}
+                    @can('verify', $event)
                         <div class="pt-4 mt-2 border-t">
                             <p class="mb-2 text-xs font-semibold text-gray-500 uppercase">Ubah Status Verifikasi</p>
 
@@ -239,18 +235,18 @@
                             </form>
                         </div>
                     @else
-                        {{-- non-admin hanya info --}}
+                        {{-- non-verify user hanya info --}}
                         <div class="pt-4 mt-2 border-t">
                             <div class="p-3 text-sm text-gray-700 border border-gray-200 rounded-lg bg-gray-50">
                                 <div class="font-semibold text-gray-800">Info</div>
                                 <div class="mt-1 text-xs text-gray-600">
-                                    Hanya admin yang dapat mengubah status verifikasi peristiwa.
+                                    Anda tidak memiliki akses untuk mengubah status verifikasi peristiwa.
                                 </div>
                             </div>
                         </div>
-                    @endif
+                    @endcan
 
-                    {{-- ✅ catatan peristiwa --}}
+                    {{-- catatan peristiwa --}}
                     <div class="pt-4 mt-2 border-t">
                         <p class="text-xs font-semibold text-gray-500 uppercase">Catatan Peristiwa</p>
                         <p class="mt-1 text-sm text-gray-800 whitespace-pre-line">
@@ -259,7 +255,7 @@
                     </div>
                 </div>
 
-                {{-- ✅ footer navigasi (button kembali) --}}
+                {{-- footer navigasi --}}
                 <div class="flex items-center justify-between px-6 py-4 border-t bg-gray-50">
                     <a href="{{ route('events.index') }}" class="text-sm text-gray-600 hover:underline">
                         ← Kembali ke daftar peristiwa
@@ -270,24 +266,26 @@
         </div>
     </div>
 
-    {{-- ✅ Konfirmasi JS saat klik “Simpan Verifikasi” (hanya admin & jika status saat ini disetujui) --}}
-    @if ($isAdmin && $event->status_verifikasi === 'disetujui')
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                const form = document.getElementById('form-verifikasi');
-                if (!form) return;
+    {{-- ✅ Konfirmasi JS saat klik “Simpan Verifikasi” (policy-based + jika status saat ini disetujui) --}}
+    @can('verify', $event)
+        @if ($event->status_verifikasi === 'disetujui')
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const form = document.getElementById('form-verifikasi');
+                    if (!form) return;
 
-                form.addEventListener('submit', function (e) {
-                    const ok = confirm(
-                        'PERHATIAN!\n\n' +
-                        'Peristiwa ini sudah DISUTUJUI dan telah mengubah status penduduk.\n' +
-                        'Jika Anda mengubah status verifikasi, sistem akan mencoba mengembalikan status ke kondisi sebelumnya.\n\n' +
-                        'Apakah Anda yakin ingin melanjutkan?'
-                    );
+                    form.addEventListener('submit', function (e) {
+                        const ok = confirm(
+                            'PERHATIAN!\n\n' +
+                            'Peristiwa ini sudah DISUTUJUI dan telah mengubah status penduduk.\n' +
+                            'Jika Anda mengubah status verifikasi, sistem akan mencoba mengembalikan status ke kondisi sebelumnya.\n\n' +
+                            'Apakah Anda yakin ingin melanjutkan?'
+                        );
 
-                    if (!ok) e.preventDefault();
+                        if (!ok) e.preventDefault();
+                    });
                 });
-            });
-        </script>
-    @endif
+            </script>
+        @endif
+    @endcan
 </x-app-layout>
