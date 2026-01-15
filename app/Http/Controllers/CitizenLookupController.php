@@ -25,7 +25,22 @@ class CitizenLookupController extends Controller
         }
 
         $query = Citizen::query()
-            ->select(['id', 'nik', 'no_kk', 'nama', 'dusun', 'rw', 'rt', 'status_dasar'])
+            ->select([
+                'id',
+                'nik',
+                'no_kk',
+                'nama',
+                'jenis_kelamin',
+                'tanggal_lahir',
+                'status_perkawinan',
+                'agama',
+                'pendidikan_dalam_kk',
+                'pekerjaan',
+                'dusun',
+                'rw',
+                'rt',
+                'status_dasar',
+            ])
             ->where('nik', $nik);
 
         $this->scopeCitizenForOperator($query, $user, '', true);
@@ -73,7 +88,6 @@ class CitizenLookupController extends Controller
                     ->orWhere('no_kk', 'like', "%{$q}%");
             });
 
-        // ✅ scope operator (tanpa abort; kalau pun dusun kosong, sudah di-handle di atas)
         $this->scopeCitizenForOperator($query, $user, '', false);
 
         $citizens = $query

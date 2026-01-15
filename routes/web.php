@@ -56,12 +56,9 @@ Route::middleware(['auth', 'force_password_change'])->group(function () {
     // =========================
     // DATA POPULASI PER WILAYAH
     // =========================
-
-    // list (semua user login boleh lihat)
     Route::get('/data/populasi-per-wilayah', [PopulationDataController::class, 'populasiPerWilayah'])
         ->name('data.populasi');
 
-    // create/store/edit/update/delete (admin only)
     Route::get('/data/populasi-per-wilayah/create', [PopulationDataController::class, 'createPopulasiPerWilayah'])
         ->middleware('role:admin')
         ->name('data.populasi.create');
@@ -85,12 +82,9 @@ Route::middleware(['auth', 'force_password_change'])->group(function () {
     // =========================
     // DATA RENTANG UMUR
     // =========================
-
-    // list (semua user login boleh lihat)
     Route::get('/data/rentang-umur', [AgeRangeController::class, 'index'])
         ->name('rentang-umur.index');
 
-    // create/store/edit/update/delete (admin only)
     Route::get('/data/rentang-umur/create', [AgeRangeController::class, 'create'])
         ->middleware('role:admin')
         ->name('rentang-umur.create');
@@ -188,7 +182,7 @@ Route::middleware(['auth', 'force_password_change'])->group(function () {
                 ->name('events.meninggal.store');
 
             // =========================
-            // STEP 1: HILANG
+            // HILANG
             // =========================
             Route::get('/hilang/create', [PopulationEventController::class, 'createHilang'])
                 ->name('events.hilang.create');
@@ -197,7 +191,7 @@ Route::middleware(['auth', 'force_password_change'])->group(function () {
                 ->name('events.hilang.store');
 
             // =========================
-            // STEP 2: LAHIR
+            // LAHIR (VERSI BARU — PENGIKAT IBU)
             // =========================
             Route::get('/lahir/create', [PopulationEventController::class, 'createLahir'])
                 ->name('events.lahir.create');

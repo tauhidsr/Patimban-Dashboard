@@ -9,11 +9,35 @@
      * - $onlyActive (bool) default true (blok kalau status_dasar != aktif)
      * - $prefix (string) default 'pe' (biar id input unik per form)
      * - $submitButtonId (string) default 'btnSubmit' (id tombol submit di parent)
+     *
+     * === New optional for reuse (ibu/ayah) ===
+     * - $title (string) heading, default 'Identitas Penduduk'
+     * - $labelNik (string) label untuk NIK, default 'NIK'
+     * - $requiredNik (bool) default true
+     * - $lockSubmit (bool) default true (kalau false, komponen ini tidak mengunci submit)
+     *
+     * - $nameNik (string) default 'nik'
+     * - $nameNoKk (string) default 'no_kk'
+     * - $nameNama (string) default 'nama'
+     *
+     * - $showAge (bool) default false => menampilkan umur jika API mengembalikan tanggal_lahir
      */
     $eventLabel      = $eventLabel ?? 'Peristiwa';
     $onlyActive      = $onlyActive ?? true;
     $prefix          = $prefix ?? 'pe';
     $submitButtonId  = $submitButtonId ?? 'btnSubmit';
+
+    $title           = $title ?? 'Identitas Penduduk';
+    $labelNik        = $labelNik ?? 'NIK';
+
+    $requiredNik     = $requiredNik ?? true;
+    $lockSubmit      = $lockSubmit ?? true;
+
+    $nameNik         = $nameNik ?? 'nik';
+    $nameNoKk        = $nameNoKk ?? 'no_kk';
+    $nameNama        = $nameNama ?? 'nama';
+
+    $showAge         = $showAge ?? false;
 
     // unik untuk wrapper (biar JS scoped aman)
     $wrapId = "identityWrap_{$prefix}";
@@ -26,41 +50,51 @@
         <div class="mt-1 text-sm" data-role="statusDesc">-</div>
     </div>
 
-    <h3 class="mb-2 text-lg font-semibold text-gray-700">
-        Identitas Penduduk
-    </h3>
+    <div class="flex items-start justify-between gap-4">
+        <div>
+            <h3 class="mb-1 text-lg font-semibold text-gray-700">
+                {{ $title }}
+            </h3>
+            <p class="text-xs text-gray-500">
+                Ketik minimal 3 karakter (NIK / Nama / No KK), lalu pilih penduduk.
+            </p>
+        </div>
 
-    {{-- No KK (readonly biar ikut terkirim) --}}
-    <div>
+        @if($requiredNik)
+            <div class="text-xs font-semibold text-red-600">Wajib</div>
+        @else
+            <div class="text-xs font-semibold text-gray-500">Opsional</div>
+        @endif
+    </div>
+
+    {{-- No KK --}}
+    <div class="mt-3">
         <label class="block mb-1 text-sm font-medium">No KK</label>
         <input data-role="no_kk"
                id="{{ $prefix }}_no_kk"
                type="text"
-               name="no_kk"
-               value="{{ old('no_kk') }}"
+               name="{{ $nameNoKk }}"
+               value="{{ old($nameNoKk) }}"
                class="w-full border-gray-300 rounded bg-gray-50"
                readonly>
-        @error('no_kk')
+        @error($nameNoKk)
             <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
         @enderror
     </div>
 
     {{-- NIK (Tom Select) --}}
-    <div>
-        <label class="block mb-1 text-sm font-medium">NIK</label>
+    <div class="mt-3">
+        <label class="block mb-1 text-sm font-medium">{{ $labelNik }} @if($requiredNik)<span class="text-red-600">*</span>@endif</label>
+
         <select data-role="nik"
                 id="{{ $prefix }}_nik"
-                name="nik"
+                name="{{ $nameNik }}"
                 class="w-full border-gray-300 rounded"
                 {{ $canCreate ? '' : 'disabled' }}>
-            @if(old('nik'))
-                <option value="{{ old('nik') }}" selected>{{ old('nik') }}</option>
+            @if(old($nameNik))
+                <option value="{{ old($nameNik) }}" selected>{{ old($nameNik) }}</option>
             @endif
         </select>
-
-        <p class="mt-1 text-xs text-gray-500">
-            Ketik minimal 3 karakter (NIK / Nama / No KK), lalu pilih penduduk.
-        </p>
 
         <p data-role="nikError" class="hidden mt-1 text-xs text-red-600"></p>
 
@@ -71,34 +105,50 @@
             </span>
         </div>
 
-        @error('nik')
+        @error($nameNik)
             <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
         @enderror
     </div>
 
-    {{-- Nama (readonly biar ikut terkirim) --}}
-    <div>
+    {{-- Nama --}}
+    <div class="mt-3">
         <label class="block mb-1 text-sm font-medium">Nama</label>
         <input data-role="nama"
                id="{{ $prefix }}_nama"
                type="text"
-               name="nama"
-               value="{{ old('nama') }}"
+               name="{{ $nameNama }}"
+               value="{{ old($nameNama) }}"
                class="w-full border-gray-300 rounded bg-gray-50"
                readonly>
-        @error('nama')
+        @error($nameNama)
             <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
         @enderror
     </div>
 
+    {{-- Umur (opsional tampil, jika API mengembalikan tanggal_lahir) --}}
+    @if($showAge)
+        <div class="mt-3">
+            <label class="block mb-1 text-sm font-medium">Umur (Auto)</label>
+            <input data-role="umur"
+                   id="{{ $prefix }}_umur"
+                   type="text"
+                   value=""
+                   class="w-full border-gray-300 rounded bg-gray-50"
+                   readonly>
+            <p class="mt-1 text-xs text-gray-500">
+                Umur dihitung dari tanggal lahir (jika tersedia di data penduduk).
+            </p>
+        </div>
+    @endif
+
     {{-- Dusun / RW / RT (tampil saja) --}}
-    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 mt-3 md:grid-cols-3">
         <div>
             <label class="block mb-1 text-sm font-medium">Dusun</label>
             <input data-role="dusun"
                    id="{{ $prefix }}_dusun"
                    type="text"
-                   value="{{ old('dusun') }}"
+                   value="{{ old("{$prefix}_dusun") }}"
                    class="w-full border-gray-300 rounded bg-gray-50"
                    readonly>
         </div>
@@ -107,7 +157,7 @@
             <input data-role="rw"
                    id="{{ $prefix }}_rw"
                    type="text"
-                   value="{{ old('rw') }}"
+                   value="{{ old("{$prefix}_rw") }}"
                    class="w-full border-gray-300 rounded bg-gray-50"
                    readonly>
         </div>
@@ -116,7 +166,7 @@
             <input data-role="rt"
                    id="{{ $prefix }}_rt"
                    type="text"
-                   value="{{ old('rt') }}"
+                   value="{{ old("{$prefix}_rt") }}"
                    class="w-full border-gray-300 rounded bg-gray-50"
                    readonly>
         </div>
@@ -137,6 +187,10 @@
         const wrapId = @json($wrapId);
         const submitButtonId = @json($submitButtonId);
 
+        const requiredNik = @json($requiredNik);
+        const lockSubmit = @json($lockSubmit);
+        const showAge = @json($showAge);
+
         const wrap = document.getElementById(wrapId);
         if (!wrap) return;
 
@@ -147,6 +201,7 @@
         const dusun = wrap.querySelector('[data-role="dusun"]');
         const rw = wrap.querySelector('[data-role="rw"]');
         const rt = wrap.querySelector('[data-role="rt"]');
+        const umur = wrap.querySelector('[data-role="umur"]');
 
         // tombol submit ada di parent form
         const btnSubmit = document.getElementById(submitButtonId);
@@ -163,6 +218,7 @@
 
         function setSubmit(enabled) {
             if (!btnSubmit) return;
+            if (!lockSubmit) return; // ✅ komponen opsional tidak mengunci submit
             btnSubmit.disabled = !enabled;
         }
 
@@ -220,6 +276,17 @@
             dusun.value = d.dusun ?? '';
             rw.value = d.rw ?? '';
             rt.value = d.rt ?? '';
+
+            // umur (opsional)
+            if (showAge && umur) {
+                const tl = d.tanggal_lahir ?? d.tgl_lahir ?? null;
+                if (tl) {
+                    const age = calcAge(tl);
+                    umur.value = (age === null) ? '' : `${age} tahun`;
+                } else {
+                    umur.value = '';
+                }
+            }
         }
 
         function clearIdentity() {
@@ -228,13 +295,14 @@
             dusun.value = '';
             rw.value = '';
             rt.value = '';
+            if (showAge && umur) umur.value = '';
         }
 
         function showNoResultsToast(query) {
             isNoResultHintActive = true;
 
             clearIdentity();
-            setSubmit(false);
+            setSubmit(requiredNik ? false : true);
             setError('');
 
             setBadge('warn', 'Tidak ada hasil');
@@ -251,7 +319,9 @@
             isNoResultHintActive = false;
             nikBadge.classList.add('hidden');
             hideStatusBlock();
-            setSubmit(false);
+
+            // reset submit (kalau wajib, kunci sampai valid)
+            if (requiredNik) setSubmit(false);
         }
 
         async function safeReadJson(res) {
@@ -262,10 +332,26 @@
             }
         }
 
+        function calcAge(dateString) {
+            // dateString diharapkan YYYY-MM-DD
+            const d = new Date(dateString);
+            if (isNaN(d.getTime())) return null;
+
+            const now = new Date();
+            let age = now.getFullYear() - d.getFullYear();
+            const m = now.getMonth() - d.getMonth();
+            if (m < 0 || (m === 0 && now.getDate() < d.getDate())) {
+                age--;
+            }
+            return age;
+        }
+
         async function fetchCitizen(nik) {
             isNoResultHintActive = false;
 
-            setSubmit(false);
+            // default: jika required & lock -> disable submit sampai valid
+            if (requiredNik) setSubmit(false);
+
             setError('');
             hideStatusBlock();
 
@@ -283,6 +369,7 @@
                     setError(msg);
                     setBadge('error', 'Akses ditolak');
                     showStatusBlock('error', 'Tidak bisa lanjut', msg);
+                    if (requiredNik) setSubmit(false);
                     return;
                 }
 
@@ -290,12 +377,14 @@
                     setError(msg);
                     setBadge('error', 'Penduduk tidak ditemukan');
                     showStatusBlock('error', 'Tidak bisa lanjut', msg);
+                    if (requiredNik) setSubmit(false);
                     return;
                 }
 
                 setError(msg);
                 setBadge('error', 'Gagal memuat data');
                 showStatusBlock('error', 'Terjadi kesalahan', msg);
+                if (requiredNik) setSubmit(false);
                 return;
             }
 
@@ -309,25 +398,25 @@
             setBadge('ok', `Penduduk ditemukan — status ${statusDasar ? statusDasar.toUpperCase() : 'TERDAFTAR'}`);
 
             if (onlyActive && statusDasar && statusDasar !== 'aktif') {
-                setSubmit(false);
+                if (requiredNik) setSubmit(false);
                 setBadge('warn', `Tidak bisa diproses — status ${statusDasar.toUpperCase()}`);
                 showStatusBlock(
                     'warn',
-                    '⚠ Tidak bisa input peristiwa untuk penduduk ini',
+                    '⚠ Tidak bisa diproses',
                     `Status penduduk saat ini: ${statusDasar.toUpperCase()}. Peristiwa ${eventLabel} hanya boleh untuk status AKTIF.`
                 );
             } else {
-                setSubmit(true);
+                if (requiredNik) setSubmit(true);
                 showStatusBlock(
                     'ok',
                     '✅ Data penduduk valid',
-                    'Form bisa disimpan. Pastikan detail peristiwa sudah benar.'
+                    requiredNik ? 'Form bisa disimpan. Pastikan detail peristiwa sudah benar.' : 'Data opsional berhasil dipilih.'
                 );
             }
         }
 
-        // default: submit disabled sampai nik valid
-        setSubmit(false);
+        // default: kalau wajib -> submit disabled sampai valid
+        if (requiredNik) setSubmit(false);
 
         if (!canCreate || !nikSelect) {
             return;
@@ -342,7 +431,7 @@
             placeholder: 'Cari NIK / Nama / No KK...',
 
             render: {
-                no_results: function(data, escape) {
+                no_results: function() {
                     return `<div class="p-2 text-sm text-gray-600 no-results">
                         Tidak ada hasil. Bisa jadi NIK tidak terdaftar atau di luar wilayah Anda.
                     </div>`;
@@ -356,7 +445,7 @@
                 if (!query || query.length < 3) {
                     nikBadge.classList.add('hidden');
                     hideStatusBlock();
-                    setSubmit(false);
+                    if (requiredNik) setSubmit(false);
                     return cb();
                 }
 
@@ -383,7 +472,8 @@
                     setError('');
                     nikBadge.classList.add('hidden');
                     hideStatusBlock();
-                    setSubmit(false);
+
+                    if (requiredNik) setSubmit(false);
                     return;
                 }
                 fetchCitizen(value);
@@ -408,11 +498,14 @@
             }
         });
 
-        const oldNik = @json(old('nik'));
+        const oldNik = @json(old($nameNik));
         if (oldNik) {
             ts.addOption({ value: oldNik, text: oldNik });
             ts.setValue(oldNik, true);
             fetchCitizen(oldNik);
+        } else {
+            // jika tidak wajib, tidak perlu mengunci submit dari komponen ini
+            if (!requiredNik && lockSubmit) setSubmit(true);
         }
     })();
 </script>
