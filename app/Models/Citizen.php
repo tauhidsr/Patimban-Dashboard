@@ -38,6 +38,15 @@ class Citizen extends Model
         'keterangan',
     ];
 
+    protected function casts(): array
+{
+    return [
+        'tanggal_lahir' => 'date',
+        'latitude' => 'float',
+        'longitude' => 'float',
+    ];
+}
+
     /**
      * Relasi ke tabel citizen_events (peristiwa kependudukan)
      */

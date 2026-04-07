@@ -29,19 +29,29 @@ class PopulationEventPolicy
             return true;
         }
 
-        // operator wajib punya dusun
         if (empty($user->dusun)) {
             return false;
         }
 
         $citizenQuery = Citizen::query();
 
-        if (!empty($event->citizen_id)) {
-            $citizenQuery->where('id', $event->citizen_id);
-        } elseif (!empty($event->nik)) {
-            $citizenQuery->where('nik', $event->nik);
+        // Untuk event lahir, prioritas cek ibu
+        if ($event->jenis_peristiwa === 'lahir') {
+            if (!empty($event->ibu_citizen_id)) {
+                $citizenQuery->where('id', $event->ibu_citizen_id);
+            } elseif (!empty($event->nik_ibu)) {
+                $citizenQuery->where('nik', $event->nik_ibu);
+            } else {
+                return false;
+            }
         } else {
-            return false;
+            if (!empty($event->citizen_id)) {
+                $citizenQuery->where('id', $event->citizen_id);
+            } elseif (!empty($event->nik)) {
+                $citizenQuery->where('nik', $event->nik);
+            } else {
+                return false;
+            }
         }
 
         $citizenQuery->where('dusun', $user->dusun);
@@ -49,6 +59,7 @@ class PopulationEventPolicy
         if (!empty($user->rw)) {
             $citizenQuery->where('rw', $user->rw);
         }
+
         if (!empty($user->rt)) {
             $citizenQuery->where('rt', $user->rt);
         }

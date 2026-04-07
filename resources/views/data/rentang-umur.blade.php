@@ -52,7 +52,7 @@
                                 + Tambah Data Rentang Umur
                             </a>
                         </div>
-                    @endif
+                    @endif`
 
                     {{-- pesan sukses --}}
                     @if (session('success'))

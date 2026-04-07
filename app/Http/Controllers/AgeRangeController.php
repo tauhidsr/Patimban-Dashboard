@@ -38,10 +38,10 @@ class AgeRangeController extends Controller
     {
         $validated = $request->validate([
             'kategori'   => 'required|string|max:255',
-            'laki_laki'  => 'nullable|integer',
-            'perempuan'  => 'nullable|integer',
-            'total'      => 'nullable|integer',
-            'tahun'      => 'nullable|integer',
+            'laki_laki'  => 'nullable|integer|min:0',
+            'perempuan'  => 'nullable|integer|min:0',
+            'total'      => 'nullable|integer|min:0',
+            'tahun'      => 'nullable|integer|digits:4|min:1900|max:2100',
         ]);
 
         if (empty($validated['total'])) {
@@ -74,10 +74,10 @@ class AgeRangeController extends Controller
 
         $validated = $request->validate([
             'kategori'   => 'required|string|max:255',
-            'laki_laki'  => 'nullable|integer',
-            'perempuan'  => 'nullable|integer',
-            'total'      => 'nullable|integer',
-            'tahun'      => 'nullable|integer',
+            'laki_laki'  => 'nullable|integer|min:0',
+            'perempuan'  => 'nullable|integer|min:0',
+            'total'      => 'nullable|integer|min:0',
+            'tahun'      => 'nullable|integer|digits:4|min:1900|max:2100',
         ]);
 
         if (empty($validated['total'])) {

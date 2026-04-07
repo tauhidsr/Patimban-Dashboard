@@ -8,7 +8,6 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
     protected $fillable = [
@@ -24,7 +23,6 @@ class User extends Authenticatable
         'password_changed_at',
     ];
 
-
     protected $hidden = [
         'password',
         'remember_token',
@@ -33,17 +31,30 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at'      => 'datetime',
-            'password'               => 'hashed',
-
-            // ✅ casting untuk fitur force change
-            'must_change_password'   => 'boolean',
-            'password_changed_at'    => 'datetime',
+            'email_verified_at'    => 'datetime',
+            'password'             => 'hashed',
+            'must_change_password' => 'boolean',
+            'password_changed_at'  => 'datetime',
         ];
     }
 
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    public function isOperator(): bool
+    {
+        return $this->role === 'operator';
+    }
+
+    public function isViewer(): bool
+    {
+        return $this->role === 'viewer';
+    }
+
+    public function hasAreaScope(): bool
+    {
+        return !empty($this->dusun);
     }
 }
